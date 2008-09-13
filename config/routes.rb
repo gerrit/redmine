@@ -70,14 +70,34 @@ ActionController::Routing::Routes.draw do |map|
       activity.connect 'activity.:format'
     end
   end
+  
+  map.with_options :controller => 'repositories' do |repositories|
+    repositories.connect 'projects/:id/repository', :action => 'show', :conditions => {:method => :get}
+    repositories.connect 'projects/:id/repository/edit', :action => 'edit', :conditions => {:method => :post}
+    repositories.connect 'projects/:id/repository/edit', :action => 'edit', :conditions => {:method => :get}
+    repositories.connect 'projects/:id/repository/statistics', :action => 'stats', :conditions => {:method => :get}
+    repositories.connect 'projects/:id/repository/revisions', :action => 'revisions', :conditions => {:method => :get}
+    repositories.connect 'projects/:id/repository/revisions.:format', :action => 'revisions', :conditions => {:method => :get}
+    repositories.repositories_revision 'projects/:id/repository/revisions/:rev', :action => 'revision', :conditions => {:method => :get}
+    repositories.connect 'projects/:id/repository/revisions/:rev/diff', :action => 'diff', :conditions => {:method => :get}
+    repositories.connect 'projects/:id/repository/revisions/:rev/diff.:format', :action => 'diff', :conditions => {:method => :get}
 
+    repositories.connect 'projects/:id/repository/:action/*path', :conditions => {:method => :get}
+    
+    # repositories.repositories_show 'projects/:id/repository/browser/*path', :action => 'browse'
+    # repositories.repositories_changes 'projects/:id/repository/changes/*path', :action => 'changes'
+    # repositories.repositories_entry 'projects/:id/repository/entry/*path', :action => 'entry'
+    # repositories.connect 'projects/:id/repository/annotate/*path', :action => 'annotate'
+  end
+  
+  #retain backwards compatibility by leaving this under the block abover
   map.with_options :controller => 'repositories' do |omap|
     omap.repositories_show 'repositories/browse/:id/*path', :action => 'browse'
     omap.repositories_changes 'repositories/changes/:id/*path', :action => 'changes'
     omap.repositories_diff 'repositories/diff/:id/*path', :action => 'diff'
     omap.repositories_entry 'repositories/entry/:id/*path', :action => 'entry'
     omap.repositories_entry 'repositories/annotate/:id/*path', :action => 'annotate'
-    omap.repositories_revision 'repositories/revision/:id/:rev', :action => 'revision'
+    omap.connect 'repositories/revision/:id/:rev', :action => 'revision'
   end
   
   map.connect 'attachments/:id', :controller => 'attachments', :action => 'show', :id => /\d+/

@@ -141,14 +141,6 @@ class ProjectsControllerTest < Test::Unit::TestCase
     project = Project.find(1)
     assert_equal 'Test changed name', project.name
   end
-    
-  #TODO: move into test file for members controller(doesnt exist yet)
-  def test_members_routing
-    assert_routing(
-      {:method => :post, :path => 'projects/5234/members/new'},
-      :controller => 'members', :action => 'new', :id => '5234'
-    )
-  end
   
   def test_add_version_routing
     assert_routing(
@@ -257,7 +249,14 @@ class ProjectsControllerTest < Test::Unit::TestCase
       :controller => 'projects', :action => 'list_files', :id => '33'
     )
   end
-
+  
+  def test_changelog_routing
+    assert_routing(
+      {:method => :get, :path => '/projects/44/changelog'},
+      :controller => 'projects', :action => 'changelog', :id => '44'
+    )
+  end
+  
   def test_changelog
     get :changelog, :id => 1
     assert_response :success

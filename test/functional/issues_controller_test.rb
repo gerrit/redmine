@@ -74,6 +74,13 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert_tag :tag => 'a', :content => /Subproject issue/
   end
 
+  def test_index_with_project_routing
+    assert_routing(
+      {:method => :get, :path => 'projects/23/issues'},
+      :controller => 'issues', :action => 'index', :project_id => '23'
+    )
+  end
+  
   def test_index_with_project
     Setting.display_subprojects_issues = 0
     get :index, :project_id => 1
@@ -105,6 +112,17 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert_tag :tag => 'a', :content => /Can't print recipes/
     assert_tag :tag => 'a', :content => /Subproject issue/
     assert_tag :tag => 'a', :content => /Issue of a private subproject/
+  end
+  
+  def test_index_with_project_routing_formatted
+    assert_routing(
+      {:method => :get, :path => 'projects/23/issues.pdf'},
+      :controller => 'issues', :action => 'index', :project_id => '23', :format => 'pdf'
+    )
+    assert_routing(
+      {:method => :get, :path => 'projects/23/issues.atom'},
+      :controller => 'issues', :action => 'index', :project_id => '23', :format => 'atom'
+    )
   end
   
   def test_index_with_project_and_filter
@@ -219,6 +237,13 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert_response :success
     assert_not_nil assigns(:journals)
     assert_equal 'application/atom+xml', @response.content_type
+  end
+  
+  def test_show_routing
+    assert_routing(
+      {:method => :get, :path => '/issues/64'},
+      :controller => 'issues', :action => 'show', :id => '64'
+    )
   end
   
   def test_show_by_anonymous

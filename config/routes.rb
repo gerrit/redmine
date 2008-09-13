@@ -21,16 +21,21 @@ ActionController::Routing::Routes.draw do |map|
   #map.connect ':controller/:action/:id/:sort_key/:sort_order'
   
   map.connect 'issues/:issue_id/relations/:action/:id', :controller => 'issue_relations'
+  map.connect 'issues/:id', :controller => 'issues', :action => 'show', :conditions => {:method => :get}
 
   map.connect 'boards/:board_id/topics/:action/:id', :controller => 'messages'
 
+  map.connect 'projects/:project_id/issues.:format', :controller => 'issues', :controller => {:method => :get}
+  map.connect 'projects/:id/issues/report', :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get}
+  map.connect 'projects/:id/issues/report/:detail', :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get}
   map.connect 'projects/:project_id/issues/:action', :controller => 'issues'
+  
   map.connect 'projects/:project_id/news/:action', :controller => 'news'
   map.connect 'projects/:project_id/documents/:action', :controller => 'documents'
   map.connect 'projects/:project_id/boards/:action/:id', :controller => 'boards'
   map.connect 'projects/:project_id/timelog/:action/:id', :controller => 'timelog', :project_id => /.+/
+
   map.connect 'projects/:id/members/new', :controller => 'members', :action => 'new'
-  
   map.connect 'projects/:id/wiki', :controller => 'wikis', :action => 'edit', :conditions => {:method => :post}
   map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :get}
   map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :post}
@@ -43,6 +48,7 @@ ActionController::Routing::Routes.draw do |map|
     projects.connect 'projects/:id', :action => 'show', :conditions => {:method => :get}
     
     projects.connect 'projects/:id/roadmap', :action => 'roadmap', :conditions => {:method => :get}
+    projects.connect 'projects/:id/changelog', :action => 'changelog', :conditions => {:method => :get}
     
     projects.connect 'projects/:id/files', :action => 'list_files', :conditions => {:method => :get}
     projects.connect 'projects/:id/files/new', :action => 'add_file', :conditions => {:method => :get}

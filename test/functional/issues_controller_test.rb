@@ -99,6 +99,13 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert_tag :tag => 'a', :content => /Subproject issue/
   end
 
+  def test_index_with_project_routing
+    assert_routing(
+      {:method => :get, :path => 'projects/23/issues'},
+      :controller => 'issues', :action => 'index', :project_id => '23'
+    )
+  end
+  
   def test_index_with_project
     Setting.display_subprojects_issues = 0
     get :index, :project_id => 1

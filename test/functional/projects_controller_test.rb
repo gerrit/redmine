@@ -33,7 +33,14 @@ class ProjectsControllerTest < Test::Unit::TestCase
     @request.session[:user_id] = nil
     Setting.default_language = 'en'
   end
-
+  
+  def test_index_routing
+    assert_routing(
+      {:method => :get, :path => '/projects'},
+      :controller => 'projects', :action => 'index'
+    )
+  end
+  
   def test_index
     get :index
     assert_response :success
@@ -45,12 +52,37 @@ class ProjectsControllerTest < Test::Unit::TestCase
     assert assigns(:project_tree)[Project.find(1)].include?(Project.find(3))
   end
   
+  def test_index_atom_routing
+    assert_routing(
+      {:method => :get, :path => '/projects.atom'},
+      :controller => 'projects', :action => 'index', :format => 'atom'
+    )
+  end
+  
   def test_index_atom
     get :index, :format => 'atom'
     assert_response :success
     assert_template 'common/feed.atom.rxml'
     assert_select 'feed>title', :text => 'Redmine: Latest projects'
     assert_select 'feed>entry', :count => Project.count(:conditions => Project.visible_by(User.current))
+  end
+  
+  def test_add_routing
+    assert_routing(
+      {:method => :get, :path => '/projects/new'},
+      :controller => 'projects', :action => 'add'
+    )
+    assert_routing(
+      {:method => :post, :path => '/projects/new'},
+      :controller => 'projects', :action => 'add'
+    )
+  end
+  
+  def test_show_routing
+    assert_routing(
+      {:method => :get, :path => '/projects/test'},
+      :controller => 'projects', :action => 'show', :id => 'test'
+    )
   end
   
   def test_show_by_id

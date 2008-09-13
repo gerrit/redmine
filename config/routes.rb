@@ -36,6 +36,12 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :post}
   
   map.with_options :controller => 'projects' do |projects|
+    projects.connect 'projects', :action => 'index', :conditions => {:method => :get}
+    projects.connect 'projects.:format', :action => 'index', :conditions => {:method => :get}
+    projects.connect 'projects/new', :action => 'add', :conditions => {:method => :get}
+    projects.connect 'projects/new', :action => 'add', :conditions => {:method => :post}
+    projects.connect 'projects/:id', :action => 'show', :conditions => {:method => :get}
+    
     projects.connect 'projects/:id/roadmap', :action => 'roadmap', :conditions => {:method => :get}
     
     projects.connect 'projects/:id/files', :action => 'list_files', :conditions => {:method => :get}
@@ -51,8 +57,6 @@ ActionController::Routing::Routes.draw do |map|
     projects.connect 'projects/:id/settings', :action => 'settings', :conditions => {:method => :get}
     projects.connect 'projects/:id/settings/:tab', :action => 'settings', :conditions => {:method => :get}
     
-    # projects.connect 'projects', :action => 'index'
-    # projects.connect 'projects/:id', :action => 'show'
     projects.with_options :action => 'activity', :conditions => {:method => :get} do |activity|
       activity.connect 'projects/:id/activity'
       activity.connect 'activity'

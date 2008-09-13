@@ -31,6 +31,14 @@ class WikisControllerTest < Test::Unit::TestCase
     User.current = nil
   end
   
+  def test_edit_routing
+    assert_routing(
+    #TODO: use PUT
+      {:method => :post, :path => 'projects/ladida/wiki'},
+      :controller => 'wikis', :action => 'edit', :id => 'ladida'
+    )
+  end
+  
   def test_create
     @request.session[:user_id] = 1
     assert_nil Project.find(3).wiki
@@ -41,10 +49,23 @@ class WikisControllerTest < Test::Unit::TestCase
     assert_equal 'Start page', wiki.start_page
   end
   
+  def test_destroy_routing
+    assert_routing(
+    #TODO: use DELETE
+      {:method => :post, :path => 'projects/ladida/wiki/destroy'},
+      :controller => 'wikis', :action => 'destroy', :id => 'ladida'
+    )
+    assert_routing(
+      {:method => :get, :path => 'projects/ladida/wiki/destroy'},
+      :controller => 'wikis', :action => 'destroy', :id => 'ladida'
+    )
+    
+  end
+  
   def test_destroy
     @request.session[:user_id] = 1
     post :destroy, :id => 1, :confirm => 1
-    assert_redirected_to '/projects/settings/ecookbook?tab=wiki'
+    assert_redirected_to 'projects/ecookbook/settings/wiki'
     assert_nil Project.find(1).wiki
   end
   

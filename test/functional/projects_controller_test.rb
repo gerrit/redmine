@@ -83,6 +83,17 @@ class ProjectsControllerTest < Test::Unit::TestCase
     assert_tag :tag => 'a', :content => /Private child/
   end
   
+  def test_settings_routing
+    assert_routing(
+      {:method => :get, :path => '/projects/4223/settings'},
+      :controller => 'projects', :action => 'settings', :id => '4223'
+    )
+    assert_routing(
+      {:method => :get, :path => '/projects/4223/settings/members'},
+      :controller => 'projects', :action => 'settings', :id => '4223', :tab => 'members'
+    )
+  end
+  
   def test_settings
     @request.session[:user_id] = 2 # manager
     get :settings, :id => 1
@@ -97,6 +108,38 @@ class ProjectsControllerTest < Test::Unit::TestCase
     assert_redirected_to 'projects/settings/ecookbook'
     project = Project.find(1)
     assert_equal 'Test changed name', project.name
+  end
+    
+  #TODO: move into test file for members controller(doesnt exist yet)
+  def test_members_routing
+    assert_routing(
+      {:method => :post, :path => 'projects/5234/members/new'},
+      :controller => 'members', :action => 'new', :id => '5234'
+    )
+  end
+  
+  def test_add_version_routing
+    assert_routing(
+      {:method => :get, :path => 'projects/64/versions/new'},
+      :controller => 'projects', :action => 'add_version', :id => '64'
+    )
+    assert_routing(
+    #TODO: use PUT
+      {:method => :post, :path => 'projects/64/versions/new'},
+      :controller => 'projects', :action => 'add_version', :id => '64'
+    )
+  end
+  
+  def test_add_issue_category_routing
+    assert_routing(
+      {:method => :get, :path => 'projects/test/categories/new'},
+      :controller => 'projects', :action => 'add_issue_category', :id => 'test'
+    )
+    assert_routing(
+    #TODO: use PUT
+      {:method => :post, :path => 'projects/64/categories/new'},
+      :controller => 'projects', :action => 'add_issue_category', :id => '64'
+    )
   end
   
   def test_get_destroy
@@ -135,6 +178,17 @@ class ProjectsControllerTest < Test::Unit::TestCase
     assert mail.body.include?('testfile.txt')
   end
   
+  def test_add_file_routing
+    assert_routing(
+      {:method => :get, :path => '/projects/33/files/new'},
+      :controller => 'projects', :action => 'add_file', :id => '33'
+    )
+    assert_routing(
+      {:method => :post, :path => '/projects/33/files/new'},
+      :controller => 'projects', :action => 'add_file', :id => '33'
+    )
+  end
+  
   def test_add_version_file
     set_tmp_attachments_directory
     @request.session[:user_id] = 2
@@ -165,6 +219,13 @@ class ProjectsControllerTest < Test::Unit::TestCase
                    :attributes => { :href => '/attachments/download/9/version_file.zip' }
   end
 
+  def test_list_files_routing
+    assert_routing(
+      {:method => :get, :path => '/projects/33/files'},
+      :controller => 'projects', :action => 'list_files', :id => '33'
+    )
+  end
+
   def test_changelog
     get :changelog, :id => 1
     assert_response :success
@@ -193,7 +254,14 @@ class ProjectsControllerTest < Test::Unit::TestCase
     # Completed version appears
     assert assigns(:versions).include?(Version.find(1))
   end
-
+  
+  def test_project_activity_routing
+    assert_routing(
+      {:method => :get, :path => '/projects/1/activity'},
+       :controller => 'projects', :action => 'activity', :id => '1'
+    )
+  end
+  
   def test_project_activity
     get :activity, :id => 1, :with_subprojects => 0
     assert_response :success
@@ -230,6 +298,10 @@ class ProjectsControllerTest < Test::Unit::TestCase
                }
   end
   
+  def test_global_activity_routing
+    assert_routing({:method => :get, :path => '/activity'}, :controller => 'projects', :action => 'activity')
+  end
+  
   def test_global_activity
     get :activity
     assert_response :success
@@ -264,6 +336,10 @@ class ProjectsControllerTest < Test::Unit::TestCase
                    }
                  }
                }
+  end
+  
+  def test_global_activity_atom_routing
+    assert_routing({:method => :get, :path => '/activity.atom'}, :controller => 'projects', :action => 'activity', :format => 'atom')
   end
   
   def test_activity_atom_feed

@@ -21,12 +21,42 @@ ActionController::Routing::Routes.draw do |map|
   #map.connect ':controller/:action/:id/:sort_key/:sort_order'
   
   map.connect 'issues/:issue_id/relations/:action/:id', :controller => 'issue_relations'
+
+  map.connect 'boards/:board_id/topics/:action/:id', :controller => 'messages'
+
   map.connect 'projects/:project_id/issues/:action', :controller => 'issues'
   map.connect 'projects/:project_id/news/:action', :controller => 'news'
   map.connect 'projects/:project_id/documents/:action', :controller => 'documents'
   map.connect 'projects/:project_id/boards/:action/:id', :controller => 'boards'
   map.connect 'projects/:project_id/timelog/:action/:id', :controller => 'timelog', :project_id => /.+/
-  map.connect 'boards/:board_id/topics/:action/:id', :controller => 'messages'
+  map.connect 'projects/:id/members/new', :controller => 'members', :action => 'new'
+  
+  map.connect 'projects/:id/wiki', :controller => 'wikis', :action => 'edit', :conditions => {:method => :post}
+  map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :get}
+  map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :post}
+  
+  map.with_options :controller => 'projects' do |projects|
+    projects.connect 'projects/:id/files', :action => 'list_files', :conditions => {:method => :get}
+    projects.connect 'projects/:id/files/new', :action => 'add_file', :conditions => {:method => :get}
+    projects.connect 'projects/:id/files/new', :action => 'add_file', :conditions => {:method => :post}
+    
+    projects.connect 'projects/:id/versions/new', :action => 'add_version', :conditions => {:method => :get}
+    projects.connect 'projects/:id/versions/new', :action => 'add_version', :conditions => {:method => :post}
+
+    projects.connect 'projects/:id/categories/new', :action => 'add_issue_category', :conditions => {:method => :get}
+    projects.connect 'projects/:id/categories/new', :action => 'add_issue_category', :conditions => {:method => :post}
+    
+    projects.connect 'projects/:id/settings', :action => 'settings', :conditions => {:method => :get}
+    projects.connect 'projects/:id/settings/:tab', :action => 'settings', :conditions => {:method => :get}
+    
+    # projects.connect 'projects', :action => 'index'
+    # projects.connect 'projects/:id', :action => 'show'
+    projects.with_options :action => 'activity', :conditions => {:method => :get} do |activity|
+      activity.connect 'projects/:id/activity'
+      activity.connect 'activity'
+      activity.connect 'activity.:format'
+    end
+  end
 
   map.with_options :controller => 'repositories' do |omap|
     omap.repositories_show 'repositories/browse/:id/*path', :action => 'browse'

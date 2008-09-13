@@ -36,6 +36,8 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :post}
   
   map.with_options :controller => 'projects' do |projects|
+    projects.connect 'projects/:id/roadmap', :action => 'roadmap', :conditions => {:method => :get}
+    
     projects.connect 'projects/:id/files', :action => 'list_files', :conditions => {:method => :get}
     projects.connect 'projects/:id/files/new', :action => 'add_file', :conditions => {:method => :get}
     projects.connect 'projects/:id/files/new', :action => 'add_file', :conditions => {:method => :post}

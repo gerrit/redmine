@@ -233,6 +233,13 @@ class ProjectsControllerTest < Test::Unit::TestCase
     assert_not_nil assigns(:versions)
   end
   
+  def test_roadmap_routing
+    assert_routing(
+      {:method => :get, :path => 'projects/33/roadmap'},
+      :controller => 'projects', :action => 'roadmap', :id => '33'
+    )
+  end
+  
   def test_roadmap
     get :roadmap, :id => 1
     assert_response :success

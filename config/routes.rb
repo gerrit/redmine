@@ -65,6 +65,7 @@ ActionController::Routing::Routes.draw do |map|
     
     projects.with_options :action => 'activity', :conditions => {:method => :get} do |activity|
       activity.connect 'projects/:id/activity'
+      activity.connect 'projects/:id/activity.:format'
       activity.connect 'activity'
       activity.connect 'activity.:format'
     end

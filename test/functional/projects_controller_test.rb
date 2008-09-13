@@ -300,6 +300,13 @@ class ProjectsControllerTest < Test::Unit::TestCase
     )
   end
   
+  def test_project_activity_atom_routing
+    assert_routing(
+      {:method => :get, :path => '/projects/1/activity.atom'},
+       :controller => 'projects', :action => 'activity', :id => '1', :format => 'atom'
+    )    
+  end
+  
   def test_project_activity
     get :activity, :id => 1, :with_subprojects => 0
     assert_response :success

@@ -72,9 +72,9 @@ class ProjectsControllerTest < Test::Unit::TestCase
       {:method => :get, :path => '/projects/new'},
       :controller => 'projects', :action => 'add'
     )
-    assert_routing(
-      {:method => :post, :path => '/projects/new'},
-      :controller => 'projects', :action => 'add'
+    assert_recognizes(
+      {:controller => 'projects', :action => 'add'},
+      {:method => :post, :path => '/projects'}
     )
   end
   

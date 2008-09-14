@@ -64,6 +64,20 @@ ActionController::Routing::Routes.draw do |map|
     board_routes.connect 'projects/:project_id/boards/:action/:id' 
   end
   
+  map.with_options :controller => 'documents' do |document_routes|
+    document_routes.connect 'projects/:project_id/documents', :action => 'index', :conditions => {:method => :get}
+    document_routes.connect 'projects/:project_id/documents/new', :action => 'new', :conditions => {:method => :get}
+    document_routes.connect 'projects/:project_id/documents', :action => 'new', :conditions => {:method => :post}
+    
+    document_routes.connect 'documents/:id', :action => 'show', :conditions => {:method => :get}
+    document_routes.connect 'documents/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
+    document_routes.connect 'documents/:id/edit', :action => 'edit', :conditions => {:method => :get}
+    document_routes.connect 'documents/:id/edit', :action => 'edit', :conditions => {:method => :post}
+    
+    #left here for backwards compat, TODO: remove and test for regressions
+    document_routes.connect 'projects/:project_id/documents/:action'
+  end
+  
   map.connect 'issues/:issue_id/relations/:action/:id', :controller => 'issue_relations'
   map.connect 'issues/:id', :controller => 'issues', :action => 'show', :conditions => {:method => :get}
   map.connect 'projects/:project_id/issues.:format', :controller => 'issues', :conditions => {:method => :get}
@@ -72,7 +86,7 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'projects/:project_id/issues/:action', :controller => 'issues'
   
   map.connect 'projects/:project_id/news/:action', :controller => 'news'
-  map.connect 'projects/:project_id/documents/:action', :controller => 'documents'
+  
   map.connect 'projects/:project_id/timelog/:action/:id', :controller => 'timelog', :project_id => /.+/
 
   map.connect 'projects/:id/members/new', :controller => 'members', :action => 'new'

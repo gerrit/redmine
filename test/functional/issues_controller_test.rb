@@ -305,6 +305,17 @@ class IssuesControllerTest < Test::Unit::TestCase
                                 :child => { :tag => 'legend', 
                                             :content => /Notes/ } }
   end
+  
+  def test_new_routing
+    assert_routing(
+      {:method => :get, :path => '/projects/1/issues/new'},
+      :controller => 'issues', :action => 'new', :project_id => '1'
+    )
+    assert_recognizes(
+      {:controller => 'issues', :action => 'new', :project_id => '1'},
+      {:method => :post, :path => '/projects/1/issues'}
+    )
+  end
 
   def test_show_export_to_pdf
     get :show, :id => 1, :format => 'pdf'

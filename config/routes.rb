@@ -81,6 +81,7 @@ ActionController::Routing::Routes.draw do |map|
       issues_views.connect 'issues/:id/quoted', :action => 'reply'
       issues_views.connect 'issues/:id/move', :action => 'move'
     end
+    issues_routes.connect 'projects/:project_id/issues', :action => 'new', :conditions => {:method => :post}
     issues_routes.connect 'issues/:id/:action',
       :action => /edit|move|destroy/,
       :conditions => {:method => :post}

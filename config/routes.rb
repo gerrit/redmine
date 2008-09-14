@@ -34,6 +34,8 @@ ActionController::Routing::Routes.draw do |map|
       :action => /edit|rename|destroy|preview|protect/,
       :conditions => {:method => :post}
   end
+  map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :get}
+  map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :post}
   
   map.with_options :controller => 'messages' do |messages_routes|
     messages_routes.connect 'boards/:board_id/topics/new', :action => 'new', :conditions => {:method => :get}
@@ -91,10 +93,25 @@ ActionController::Routing::Routes.draw do |map|
     reports.connect 'projects/:id/issues/report/:detail'
   end
   
+  map.with_options :controller => 'news' do |news_routes|
+    news_routes.with_options :conditions => {:method => :get} do |news_views|
+      news_views.connect 'news', :action => 'index'
+      news_views.connect 'projects/:project_id/news', :action => 'index'
+      news_views.connect 'projects/:project_id/news.:format', :action => 'index'
+      news_views.connect 'news.:format', :action => 'index'
+      news_views.connect 'projects/:project_id/news/new', :action => 'new'
+      news_views.connect 'news/:id', :action => 'show'
+      news_views.connect 'news/:id/edit', :action => 'edit'
+    end
+    news_routes.with_options do |news_actions|
+      news_actions.connect 'projects/:project_id/news', :action => 'new'
+      news_actions.connect 'news/:id/edit', :action => 'edit'
+      news_actions.connect 'news/:id/destroy', :action => 'destroy'
+    end
+  end
+  
   map.connect 'projects/:id/members/new', :controller => 'members', :action => 'new'
   map.connect 'projects/:id/wiki', :controller => 'wikis', :action => 'edit', :conditions => {:method => :post}
-  map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :get}
-  map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :post}
   
   map.with_options :controller => 'projects' do |projects|
     projects.connect 'projects', :action => 'index', :conditions => {:method => :get}

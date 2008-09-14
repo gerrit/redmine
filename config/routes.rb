@@ -19,6 +19,8 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'help/:ctrl/:page', :controller => 'help'
   #map.connect ':controller/:action/:id/:sort_key/:sort_order'
   
+  map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :get}
+  map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :post}
   map.with_options :controller => 'wiki' do |wiki_routes|
     wiki_routes.with_options :conditions => {:method => :get} do |wiki_views|
       wiki_views.connect 'projects/:id/wiki/:page', :action => 'special', :page => /page_index|date_index|export/i
@@ -34,8 +36,6 @@ ActionController::Routing::Routes.draw do |map|
       :action => /edit|rename|destroy|preview|protect/,
       :conditions => {:method => :post}
   end
-  map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :get}
-  map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :post}
   
   map.with_options :controller => 'messages' do |messages_routes|
     messages_routes.connect 'boards/:board_id/topics/new', :action => 'new', :conditions => {:method => :get}

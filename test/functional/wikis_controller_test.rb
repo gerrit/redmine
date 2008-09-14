@@ -51,21 +51,19 @@ class WikisControllerTest < Test::Unit::TestCase
   
   def test_destroy_routing
     assert_routing(
-    #TODO: use DELETE
-      {:method => :post, :path => 'projects/ladida/wiki/destroy'},
-      :controller => 'wikis', :action => 'destroy', :id => 'ladida'
-    )
-    assert_routing(
       {:method => :get, :path => 'projects/ladida/wiki/destroy'},
       :controller => 'wikis', :action => 'destroy', :id => 'ladida'
     )
-    
+    assert_recognizes(  #TODO: use DELETE and update form
+      {:controller => 'wikis', :action => 'destroy', :id => 'ladida'},
+      {:method => :post, :path => 'projects/ladida/wiki/destroy'}
+    )
   end
   
   def test_destroy
     @request.session[:user_id] = 1
     post :destroy, :id => 1, :confirm => 1
-    assert_redirected_to 'projects/ecookbook/settings/wiki'
+    assert_redirected_to :action => 'settings', :id => 'ecookbook', :tab => 'wiki'
     assert_nil Project.find(1).wiki
   end
   
@@ -74,4 +72,4 @@ class WikisControllerTest < Test::Unit::TestCase
     post :destroy, :id => 999, :confirm => 1
     assert_response 404
   end
-end
+end 

@@ -266,12 +266,12 @@ class IssuesControllerTest < Test::Unit::TestCase
   
   def test_show_routing_formatted
     assert_routing(
-      {:method => :get, :path => 'projects/23/issues/2332.pdf'},
-      :controller => 'issues', :action => 'index', :project_id => '23', :id => '2332', :format => 'pdf'
+      {:method => :get, :path => '/issues/2332.pdf'},
+      :controller => 'issues', :action => 'show', :id => '2332', :format => 'pdf'
     )
     assert_routing(
-      {:method => :get, :path => 'projects/23/issues/23123.atom'},
-      :controller => 'issues', :action => 'index', :project_id => '23', :id => '23123', :format => 'atom'
+      {:method => :get, :path => '/issues/23123.atom'},
+      :controller => 'issues', :action => 'show', :id => '23123', :format => 'atom'
     )
   end
   
@@ -507,7 +507,7 @@ class IssuesControllerTest < Test::Unit::TestCase
   def test_reply_routing
     assert_routing(
       {:method => :get, :path => '/issues/1/quoted'},
-      :controller => 'issues', :action => 'reply', :id => '567'
+      :controller => 'issues', :action => 'reply', :id => '1'
     )
   end
   
@@ -542,7 +542,7 @@ class IssuesControllerTest < Test::Unit::TestCase
                                         }
       end
     end
-    assert_redirected_to 'issues/show/1'
+    assert_redirected_to :action => 'show', :id => '1'
     issue.reload
     assert_equal new_subject, issue.subject
     # Make sure custom fields were not cleared
@@ -568,7 +568,7 @@ class IssuesControllerTest < Test::Unit::TestCase
                                         }
       end
     end
-    assert_redirected_to 'issues/show/1'
+    assert_redirected_to :action => 'show', :id => '1'
     issue.reload
     assert_equal 'New custom value', issue.custom_value_for(2).value
     
@@ -588,7 +588,7 @@ class IssuesControllerTest < Test::Unit::TestCase
            :notes => 'Assigned to dlopper',
            :time_entry => { :hours => '', :comments => '', :activity_id => Enumeration.get_values('ACTI').first }
     end
-    assert_redirected_to 'issues/show/1'
+    assert_redirected_to :action => 'show', :id => '1'
     issue.reload
     assert_equal 2, issue.status_id
     j = issue.journals.find(:first, :order => 'id DESC')
@@ -605,7 +605,7 @@ class IssuesControllerTest < Test::Unit::TestCase
     post :edit,
          :id => 1,
          :notes => notes
-    assert_redirected_to 'issues/show/1'
+    assert_redirected_to :action => 'show', :id => '1'
     j = Issue.find(1).journals.find(:first, :order => 'id DESC')
     assert_equal notes, j.notes
     assert_equal 0, j.details.size
@@ -624,7 +624,7 @@ class IssuesControllerTest < Test::Unit::TestCase
            :notes => '2.5 hours added',
            :time_entry => { :hours => '2.5', :comments => '', :activity_id => Enumeration.get_values('ACTI').first }
     end
-    assert_redirected_to 'issues/show/1'
+    assert_redirected_to :action => 'show', :id => '1'
     
     issue = Issue.find(1)
     
@@ -650,7 +650,7 @@ class IssuesControllerTest < Test::Unit::TestCase
          :id => 1,
          :notes => '',
          :attachments => {'1' => {'file' => test_uploaded_file('testfile.txt', 'text/plain')}}
-    assert_redirected_to 'issues/show/1'
+    assert_redirected_to :action => 'show', :id => '1'
     j = Issue.find(1).journals.find(:first, :order => 'id DESC')
     assert j.notes.blank?
     assert_equal 1, j.details.size
@@ -669,7 +669,7 @@ class IssuesControllerTest < Test::Unit::TestCase
     post :edit,
          :id => 1,
          :notes => ''
-    assert_redirected_to 'issues/show/1'
+    assert_redirected_to :action => 'show', :id => '1'
     
     issue.reload
     assert issue.journals.empty?
@@ -700,7 +700,7 @@ class IssuesControllerTest < Test::Unit::TestCase
   def test_move_routing
     assert_routing(
       {:method => :get, :path => '/issues/1/move'},
-      :controller => 'issues', :action => 'move', :id => '567'
+      :controller => 'issues', :action => 'move', :id => '1'
     )
     assert_recognizes(
       {:controller => 'issues', :action => 'move', :id => '1'},
@@ -711,14 +711,14 @@ class IssuesControllerTest < Test::Unit::TestCase
   def test_move_one_issue_to_another_project
     @request.session[:user_id] = 1
     post :move, :id => 1, :new_project_id => 2
-    assert_redirected_to 'projects/ecookbook/issues'
+    assert_redirected_to :action => 'index', :project_id => 'ecookbook'
     assert_equal 2, Issue.find(1).project_id
   end
 
   def test_bulk_move_to_another_project
     @request.session[:user_id] = 1
     post :move, :ids => [1, 2], :new_project_id => 2
-    assert_redirected_to 'projects/ecookbook/issues'
+    assert_redirected_to :action => 'index', :project_id => 'ecookbook'
     # Issues moved to project 2
     assert_equal 2, Issue.find(1).project_id
     assert_equal 2, Issue.find(2).project_id
@@ -730,7 +730,7 @@ class IssuesControllerTest < Test::Unit::TestCase
   def test_bulk_move_to_another_tracker
     @request.session[:user_id] = 1
     post :move, :ids => [1, 2], :new_tracker_id => 2
-    assert_redirected_to 'projects/ecookbook/issues'
+    assert_redirected_to :action => 'index', :project_id => 'ecookbook'
     assert_equal 2, Issue.find(1).tracker_id
     assert_equal 2, Issue.find(2).tracker_id
   end
@@ -741,10 +741,10 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert_response :success
     assert_template 'context_menu'
     assert_tag :tag => 'a', :content => 'Edit',
-                            :attributes => { :href => '/issues/edit/1',
+                            :attributes => { :href => '/issues/1/edit',
                                              :class => 'icon-edit' }
     assert_tag :tag => 'a', :content => 'Closed',
-                            :attributes => { :href => '/issues/edit/1?issue%5Bstatus_id%5D=5',
+                            :attributes => { :href => '/issues/1/edit?issue%5Bstatus_id%5D=5',
                                              :class => '' }
     assert_tag :tag => 'a', :content => 'Immediate',
                             :attributes => { :href => '/issues/bulk_edit?ids%5B%5D=1&amp;priority_id=8',
@@ -753,7 +753,7 @@ class IssuesControllerTest < Test::Unit::TestCase
                             :attributes => { :href => '/issues/bulk_edit?assigned_to_id=3&amp;ids%5B%5D=1',
                                              :class => '' }
     assert_tag :tag => 'a', :content => 'Copy',
-                            :attributes => { :href => '/projects/ecookbook/issues/new?copy_from=1',
+                            :attributes => { :href => '/projects/ecookbook/issues/1/copy',
                                              :class => 'icon-copy' }
     assert_tag :tag => 'a', :content => 'Move',
                             :attributes => { :href => '/issues/move?ids%5B%5D=1',
@@ -815,7 +815,7 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert_nil TimeEntry.find_by_issue_id(2)
     @request.session[:user_id] = 2
     post :destroy, :id => 2
-    assert_redirected_to 'projects/ecookbook/issues'
+    assert_redirected_to :action => 'index', :project_id => 'ecookbook'
     assert_nil Issue.find_by_id(2)
   end
 
@@ -831,7 +831,7 @@ class IssuesControllerTest < Test::Unit::TestCase
   def test_destroy_issues_and_destroy_time_entries
     @request.session[:user_id] = 2
     post :destroy, :ids => [1, 3], :todo => 'destroy'
-    assert_redirected_to 'projects/ecookbook/issues'
+    assert_redirected_to :action => 'index', :project_id => 'ecookbook'
     assert !(Issue.find_by_id(1) || Issue.find_by_id(3))
     assert_nil TimeEntry.find_by_id([1, 2])
   end
@@ -839,7 +839,7 @@ class IssuesControllerTest < Test::Unit::TestCase
   def test_destroy_issues_and_assign_time_entries_to_project
     @request.session[:user_id] = 2
     post :destroy, :ids => [1, 3], :todo => 'nullify'
-    assert_redirected_to 'projects/ecookbook/issues'
+    assert_redirected_to :action => 'index', :project_id => 'ecookbook'
     assert !(Issue.find_by_id(1) || Issue.find_by_id(3))
     assert_nil TimeEntry.find(1).issue_id
     assert_nil TimeEntry.find(2).issue_id
@@ -848,7 +848,7 @@ class IssuesControllerTest < Test::Unit::TestCase
   def test_destroy_issues_and_reassign_time_entries_to_another_issue
     @request.session[:user_id] = 2
     post :destroy, :ids => [1, 3], :todo => 'reassign', :reassign_to_id => 2
-    assert_redirected_to 'projects/ecookbook/issues'
+    assert_redirected_to :action => 'index', :project_id => 'ecookbook'
     assert !(Issue.find_by_id(1) || Issue.find_by_id(3))
     assert_equal 2, TimeEntry.find(1).issue_id
     assert_equal 2, TimeEntry.find(2).issue_id

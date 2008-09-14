@@ -70,6 +70,7 @@ ActionController::Routing::Routes.draw do |map|
   
   map.with_options :controller => 'issues' do |issues_routes|
     issues_routes.with_options :conditions => {:method => :get} do |issues_views|
+      issues_views.connect 'issues', :action => 'index'
       issues_views.connect 'issues.:format', :action => 'index'
       issues_views.connect 'projects/:project_id/issues.:format', :action => 'index'
       issues_views.connect 'projects/:project_id/issues/new', :action => 'new'
@@ -80,7 +81,7 @@ ActionController::Routing::Routes.draw do |map|
       issues_views.connect 'issues/:id/quoted', :action => 'reply'
       issues_views.connect 'issues/:id/move', :action => 'move'
     end
-    issues_routes.connect 'issues/:id/edit',
+    issues_routes.connect 'issues/:id/:action',
       :action => /edit|move|destroy/,
       :conditions => {:method => :post}
   end

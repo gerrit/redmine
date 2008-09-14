@@ -33,9 +33,6 @@ ActionController::Routing::Routes.draw do |map|
     wiki_routes.connect 'projects/:id/wiki/:page/:action', 
       :action => /edit|rename|destroy|preview|protect/,
       :conditions => {:method => :post}
-    
-    #left here for backwards compat, TODO: remove and test for regressions
-    wiki_routes.connect 'wiki/:id/:page/:action', :page => nil
   end
   
   map.with_options :controller => 'messages' do |messages_routes|
@@ -47,9 +44,6 @@ ActionController::Routing::Routes.draw do |map|
     messages_routes.connect 'boards/:board_id/topics/:id/edit', :action => 'edit', :conditions => {:method => :post}
     messages_routes.connect 'boards/:board_id/topics/:id/replies', :action => 'reply', :conditions => {:method => :post}
     messages_routes.connect 'boards/:board_id/topics/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
-    
-    #left here for backwards compat, TODO: remove and test for regressions
-    messages_routes.connect 'boards/:board_id/topics/:action/:id'
   end
   map.with_options :controller => 'boards' do |board_routes|
     board_routes.connect 'projects/:project_id/boards', :action => 'index', :conditions => {:method => :get}
@@ -59,9 +53,6 @@ ActionController::Routing::Routes.draw do |map|
     board_routes.connect 'projects/:project_id/boards/:id/edit', :action => 'edit', :conditions => {:method => :get}
     board_routes.connect 'projects/:project_id/boards/:id/edit', :action => 'edit', :conditions => {:method => :post}
     board_routes.connect 'projects/:project_id/boards/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
-    
-    #left here for backwards compat, TODO: remove and test for regressions
-    board_routes.connect 'projects/:project_id/boards/:action/:id' 
   end
   
   map.with_options :controller => 'documents' do |document_routes|
@@ -73,17 +64,13 @@ ActionController::Routing::Routes.draw do |map|
     document_routes.connect 'documents/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
     document_routes.connect 'documents/:id/edit', :action => 'edit', :conditions => {:method => :get}
     document_routes.connect 'documents/:id/edit', :action => 'edit', :conditions => {:method => :post}
-    
-    #left here for backwards compat, TODO: remove and test for regressions
-    document_routes.connect 'projects/:project_id/documents/:action'
   end
   
-  map.connect 'issues/:issue_id/relations/:action/:id', :controller => 'issue_relations'
   map.connect 'issues/:id', :controller => 'issues', :action => 'show', :conditions => {:method => :get}
   map.connect 'projects/:project_id/issues.:format', :controller => 'issues', :conditions => {:method => :get}
+  map.connect 'issues/:issue_id/relations/:action/:id', :controller => 'issue_relations'
   map.connect 'projects/:id/issues/report', :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get}
   map.connect 'projects/:id/issues/report/:detail', :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get}
-  map.connect 'projects/:project_id/issues/:action', :controller => 'issues'
   
   map.connect 'projects/:project_id/news/:action', :controller => 'news'
   
@@ -132,19 +119,24 @@ ActionController::Routing::Routes.draw do |map|
     repositories.connect 'projects/:id/repository/statistics', :action => 'stats', :conditions => {:method => :get}
     repositories.connect 'projects/:id/repository/revisions', :action => 'revisions', :conditions => {:method => :get}
     repositories.connect 'projects/:id/repository/revisions.:format', :action => 'revisions', :conditions => {:method => :get}
-    repositories.repositories_revision 'projects/:id/repository/revisions/:rev', :action => 'revision', :conditions => {:method => :get}
+    repositories.connect 'projects/:id/repository/revisions/:rev', :action => 'revision', :conditions => {:method => :get}
     repositories.connect 'projects/:id/repository/revisions/:rev/diff', :action => 'diff', :conditions => {:method => :get}
     repositories.connect 'projects/:id/repository/revisions/:rev/diff.:format', :action => 'diff', :conditions => {:method => :get}
 
     repositories.connect 'projects/:id/repository/:action/*path', :conditions => {:method => :get}
-    
-    # repositories.repositories_show 'projects/:id/repository/browser/*path', :action => 'browse'
-    # repositories.repositories_changes 'projects/:id/repository/changes/*path', :action => 'changes'
-    # repositories.repositories_entry 'projects/:id/repository/entry/*path', :action => 'entry'
-    # repositories.connect 'projects/:id/repository/annotate/*path', :action => 'annotate'
   end
   
-  #retain backwards compatibility by leaving this under the block abover
+  map.connect 'attachments/:id', :controller => 'attachments', :action => 'show', :id => /\d+/
+  map.connect 'attachments/:id/:filename', :controller => 'attachments', :action => 'show', :id => /\d+/, :filename => /.*/
+  map.connect 'attachments/download/:id/:filename', :controller => 'attachments', :action => 'download', :id => /\d+/, :filename => /.*/
+   
+
+  #left old routes at the bottom for backwards compat
+  map.connect 'projects/:project_id/issues/:action', :controller => 'issues'
+  map.connect 'projects/:project_id/documents/:action', :controller => 'documents'
+  map.connect 'projects/:project_id/boards/:action/:id', :controller => 'boards'
+  map.connect 'boards/:board_id/topics/:action/:id', :controller => 'messages'
+  map.connect 'wiki/:id/:page/:action', :page => nil, :controller => 'wiki'
   map.with_options :controller => 'repositories' do |omap|
     omap.repositories_show 'repositories/browse/:id/*path', :action => 'browse'
     omap.repositories_changes 'repositories/changes/:id/*path', :action => 'changes'
@@ -153,15 +145,10 @@ ActionController::Routing::Routes.draw do |map|
     omap.repositories_entry 'repositories/annotate/:id/*path', :action => 'annotate'
     omap.connect 'repositories/revision/:id/:rev', :action => 'revision'
   end
-  
-  map.connect 'attachments/:id', :controller => 'attachments', :action => 'show', :id => /\d+/
-  map.connect 'attachments/:id/:filename', :controller => 'attachments', :action => 'show', :id => /\d+/, :filename => /.*/
-  map.connect 'attachments/download/:id/:filename', :controller => 'attachments', :action => 'download', :id => /\d+/, :filename => /.*/
    
   # Allow downloading Web Service WSDL as a file with an extension
   # instead of a file named 'wsdl'
   map.connect ':controller/service.wsdl', :action => 'wsdl'
-
  
   # Install the default route as the lowest priority.
   map.connect ':controller/:action/:id'

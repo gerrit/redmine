@@ -66,16 +66,31 @@ ActionController::Routing::Routes.draw do |map|
     document_routes.connect 'documents/:id/edit', :action => 'edit', :conditions => {:method => :post}
   end
   
-  map.connect 'issues/:id', :controller => 'issues', :action => 'show', :conditions => {:method => :get}
-  map.connect 'projects/:project_id/issues.:format', :controller => 'issues', :conditions => {:method => :get}
-  map.connect 'issues/:issue_id/relations/:action/:id', :controller => 'issue_relations'
-  map.connect 'projects/:id/issues/report', :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get}
-  map.connect 'projects/:id/issues/report/:detail', :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get}
+  map.with_options :controller => 'issues' do |issues_routes|
+    issues_routes.with_options :conditions => {:method => :get} do |issues_views|
+      issues_views.connect 'issues.:format', :action => 'index'
+      issues_views.connect 'projects/:project_id/issues.:format', :action => 'index'
+      issues_views.connect 'projects/:project_id/issues/new', :action => 'new'
+      issues_views.connect 'projects/:project_id/issues/:copy_from/copy', :action => 'new'
+      issues_views.connect 'issues/:id', :action => 'show'
+      issues_views.connect 'issues/:id.:format', :action => 'show'
+      issues_views.connect 'issues/:id/edit', :action => 'edit'
+      issues_views.connect 'issues/:id/quoted', :action => 'reply'
+      issues_views.connect 'issues/:id/move', :action => 'move'
+    end
+    issues_routes.connect 'issues/:id/edit',
+      :action => /edit|move|destroy/,
+      :conditions => {:method => :post}
+  end
+  map.with_options  :controller => 'issue_relations', :conditions => {:method => :post} do |relations|
+    relations.connect 'issues/:issue_id/relations/:id', :action => 'new'
+    relations.connect 'issues/:issue_id/relations/:id/destroy', :action => 'destroy'
+  end
+  map.with_options :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get} do |reports|
+    reports.connect 'projects/:id/issues/report'
+    reports.connect 'projects/:id/issues/report/:detail'
+  end
   
-  map.connect 'projects/:project_id/news/:action', :controller => 'news'
-  
-  map.connect 'projects/:project_id/timelog/:action/:id', :controller => 'timelog', :project_id => /.+/
-
   map.connect 'projects/:id/members/new', :controller => 'members', :action => 'new'
   map.connect 'projects/:id/wiki', :controller => 'wikis', :action => 'edit', :conditions => {:method => :post}
   map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :get}
@@ -137,6 +152,9 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'projects/:project_id/boards/:action/:id', :controller => 'boards'
   map.connect 'boards/:board_id/topics/:action/:id', :controller => 'messages'
   map.connect 'wiki/:id/:page/:action', :page => nil, :controller => 'wiki'
+  map.connect 'issues/:issue_id/relations/:action/:id', :controller => 'issue_relations'
+  map.connect 'projects/:project_id/news/:action', :controller => 'news'  
+  map.connect 'projects/:project_id/timelog/:action/:id', :controller => 'timelog', :project_id => /.+/
   map.with_options :controller => 'repositories' do |omap|
     omap.repositories_show 'repositories/browse/:id/*path', :action => 'browse'
     omap.repositories_changes 'repositories/changes/:id/*path', :action => 'changes'

@@ -49,6 +49,13 @@ class IssuesControllerTest < Test::Unit::TestCase
     @response   = ActionController::TestResponse.new
     User.current = nil
   end
+  
+  def test_index_routing
+    assert_routing(
+      {:method => :get, :path => '/issues'},
+      :controller => 'issues', :action => 'index'
+    )
+  end
 
   def test_index
     get :index
@@ -76,7 +83,7 @@ class IssuesControllerTest < Test::Unit::TestCase
 
   def test_index_with_project_routing
     assert_routing(
-      {:method => :get, :path => 'projects/23/issues'},
+      {:method => :get, :path => '/projects/23/issues'},
       :controller => 'issues', :action => 'index', :project_id => '23'
     )
   end
@@ -142,6 +149,17 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert_response :success
     assert_not_nil assigns(:issues)
     assert_equal 'text/csv', @response.content_type
+  end
+  
+  def test_index_formatted
+    assert_routing(
+      {:method => :get, :path => 'issues.pdf'},
+      :controller => 'issues', :action => 'index', :format => 'pdf'
+    )
+    assert_routing(
+      {:method => :get, :path => 'issues.atom'},
+      :controller => 'issues', :action => 'index', :format => 'atom'
+    )
   end
   
   def test_index_pdf
@@ -243,6 +261,17 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert_routing(
       {:method => :get, :path => '/issues/64'},
       :controller => 'issues', :action => 'show', :id => '64'
+    )
+  end
+  
+  def test_show_routing_formatted
+    assert_routing(
+      {:method => :get, :path => 'projects/23/issues/2332.pdf'},
+      :controller => 'issues', :action => 'index', :project_id => '23', :id => '2332', :format => 'pdf'
+    )
+    assert_routing(
+      {:method => :get, :path => 'projects/23/issues/23123.atom'},
+      :controller => 'issues', :action => 'index', :project_id => '23', :id => '23123', :format => 'atom'
     )
   end
   
@@ -417,6 +446,13 @@ class IssuesControllerTest < Test::Unit::TestCase
                                         :value => 'Value for field 2'}
   end
   
+  def test_copy_routing
+    assert_routing(
+      {:method => :get, :path => '/projects/world_domination/issues/567/copy'},
+      :controller => 'issues', :action => 'new', :project_id => 'world_domination', :copy_from => '567'
+    )
+  end
+  
   def test_copy_issue
     @request.session[:user_id] = 2
     get :new, :project_id => 1, :copy_from => 1
@@ -424,6 +460,17 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert_not_nil assigns(:issue)
     orig = Issue.find(1)
     assert_equal orig.subject, assigns(:issue).subject
+  end
+  
+  def test_edit_routing
+    assert_routing(
+      {:method => :get, :path => '/issues/1/edit'},
+      :controller => 'issues', :action => 'edit', :id => '1'
+    )
+    assert_recognizes( #TODO: use a PUT on the issue URI isntead, need to adjust form
+      {:controller => 'issues', :action => 'edit', :id => '1'},
+      {:method => :post, :path => '/issues/1/edit'}
+    )
   end
   
   def test_get_edit
@@ -455,6 +502,13 @@ class IssuesControllerTest < Test::Unit::TestCase
                         :child => { :tag => 'option', 
                                     :content => 'Urgent',
                                     :attributes => { :selected => 'selected' } }
+  end
+  
+  def test_reply_routing
+    assert_routing(
+      {:method => :get, :path => '/issues/1/quoted'},
+      :controller => 'issues', :action => 'reply', :id => '567'
+    )
   end
   
   def test_reply_to_issue
@@ -643,6 +697,17 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert_nil Issue.find(2).assigned_to
   end
   
+  def test_move_routing
+    assert_routing(
+      {:method => :get, :path => '/issues/1/move'},
+      :controller => 'issues', :action => 'move', :id => '567'
+    )
+    assert_recognizes(
+      {:controller => 'issues', :action => 'move', :id => '1'},
+      {:method => :post, :path => '/issues/1/move'}
+    )
+  end
+  
   def test_move_one_issue_to_another_project
     @request.session[:user_id] = 1
     post :move, :id => 1, :new_project_id => 2
@@ -737,6 +802,13 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert_tag :tag => 'a', :content => 'Delete',
                             :attributes => { :href => '#',
                                              :class => 'icon-del disabled' }
+  end
+  
+  def test_destroy_routing
+    assert_recognizes( #TODO: use DELETE on issue URI (need to change forms)
+      {:controller => 'issues', :action => 'destroy', :id => '1'},
+      {:method => :post, :path => '/issues/1/destroy'}
+    )
   end
   
   def test_destroy_issue_with_no_time_entries

@@ -20,11 +20,30 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'help/:ctrl/:page', :controller => 'help'
   #map.connect ':controller/:action/:id/:sort_key/:sort_order'
   
+  map.with_options :controller => 'messages' do |messages_routes|
+    messages_routes.connect 'boards/:board_id/topics/new', :action => 'new', :conditions => {:method => :get}
+    messages_routes.connect 'boards/:board_id/topics/new', :action => 'new', :conditions => {:method => :post}
+    messages_routes.connect 'boards/:board_id/topics/:id', :action => 'show', :conditions => {:method => :get}
+    messages_routes.connect 'boards/:board_id/topics/:id', :action => 'reply', :conditions => {:method => :post}
+    messages_routes.connect 'boards/:board_id/topics/:id/edit', :action => 'edit', :conditions => {:method => :get}
+    messages_routes.connect 'boards/:board_id/topics/:id/edit', :action => 'edit', :conditions => {:method => :post}
+    messages_routes.connect 'boards/:board_id/topics/:id/replies', :action => 'reply', :conditions => {:method => :post}
+    messages_routes.connect 'boards/:board_id/topics/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
+    messages_routes.connect 'boards/:board_id/topics/:action/:id'#left here for backwards compat, TODO: remove and test for regressions
+  end
+  map.with_options :controller => 'boards' do |board_routes|
+    board_routes.connect 'projects/:project_id/boards', :action => 'index', :conditions => {:method => :get}
+    board_routes.connect 'projects/:project_id/boards/new', :action => 'new', :conditions => {:method => :get}
+    board_routes.connect 'projects/:project_id/boards', :action => 'new', :conditions => {:method => :post}
+    board_routes.connect 'projects/:project_id/boards/:id', :action => 'show', :conditions => {:method => :get}
+    board_routes.connect 'projects/:project_id/boards/:id/edit', :action => 'edit', :conditions => {:method => :get}
+    board_routes.connect 'projects/:project_id/boards/:id/edit', :action => 'edit', :conditions => {:method => :post}
+    board_routes.connect 'projects/:project_id/boards/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
+    board_routes.connect 'projects/:project_id/boards/:action/:id' #left here for backwards compat, TODO: remove and test for regressions
+  end
+  
   map.connect 'issues/:issue_id/relations/:action/:id', :controller => 'issue_relations'
   map.connect 'issues/:id', :controller => 'issues', :action => 'show', :conditions => {:method => :get}
-
-  map.connect 'boards/:board_id/topics/:action/:id', :controller => 'messages'
-
   map.connect 'projects/:project_id/issues.:format', :controller => 'issues', :conditions => {:method => :get}
   map.connect 'projects/:id/issues/report', :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get}
   map.connect 'projects/:id/issues/report/:detail', :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get}
@@ -32,7 +51,6 @@ ActionController::Routing::Routes.draw do |map|
   
   map.connect 'projects/:project_id/news/:action', :controller => 'news'
   map.connect 'projects/:project_id/documents/:action', :controller => 'documents'
-  map.connect 'projects/:project_id/boards/:action/:id', :controller => 'boards'
   map.connect 'projects/:project_id/timelog/:action/:id', :controller => 'timelog', :project_id => /.+/
 
   map.connect 'projects/:id/members/new', :controller => 'members', :action => 'new'

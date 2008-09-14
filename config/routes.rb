@@ -25,7 +25,7 @@ ActionController::Routing::Routes.draw do |map|
 
   map.connect 'boards/:board_id/topics/:action/:id', :controller => 'messages'
 
-  map.connect 'projects/:project_id/issues.:format', :controller => 'issues', :controller => {:method => :get}
+  map.connect 'projects/:project_id/issues.:format', :controller => 'issues', :conditions => {:method => :get}
   map.connect 'projects/:id/issues/report', :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get}
   map.connect 'projects/:id/issues/report/:detail', :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get}
   map.connect 'projects/:project_id/issues/:action', :controller => 'issues'

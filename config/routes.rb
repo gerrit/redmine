@@ -15,10 +15,28 @@ ActionController::Routing::Routes.draw do |map|
   map.signin 'login', :controller => 'account', :action => 'login'
   map.signout 'logout', :controller => 'account', :action => 'logout'
   
-  map.connect 'wiki/:id/:page/:action', :controller => 'wiki', :page => nil
   map.connect 'roles/workflow/:id/:role_id/:tracker_id', :controller => 'roles', :action => 'workflow'
   map.connect 'help/:ctrl/:page', :controller => 'help'
   #map.connect ':controller/:action/:id/:sort_key/:sort_order'
+  
+  map.with_options :controller => 'wiki' do |wiki_routes|
+    wiki_routes.with_options :conditions => {:method => :get} do |wiki_views|
+      wiki_views.connect 'projects/:id/wiki/:page', :action => 'special', :page => /page_index|date_index|export/i
+      wiki_views.connect 'projects/:id/wiki/:page', :action => 'index', :page => nil
+      wiki_views.connect 'projects/:id/wiki/:page/edit', :action => 'edit'
+      wiki_views.connect 'projects/:id/wiki/:page/rename', :action => 'rename'
+      wiki_views.connect 'projects/:id/wiki/:page/history', :action => 'history'
+      wiki_views.connect 'projects/:id/wiki/:page/diff/:version/vs/:version_from', :action => 'diff'
+      wiki_views.connect 'projects/:id/wiki/:page/annotate/:version', :action => 'annotate'
+    end
+    
+    wiki_routes.connect 'projects/:id/wiki/:page/:action', 
+      :action => /edit|rename|destroy|preview|protect/,
+      :conditions => {:method => :post}
+    
+    #left here for backwards compat, TODO: remove and test for regressions
+    wiki_routes.connect 'wiki/:id/:page/:action', :page => nil
+  end
   
   map.with_options :controller => 'messages' do |messages_routes|
     messages_routes.connect 'boards/:board_id/topics/new', :action => 'new', :conditions => {:method => :get}
@@ -29,7 +47,9 @@ ActionController::Routing::Routes.draw do |map|
     messages_routes.connect 'boards/:board_id/topics/:id/edit', :action => 'edit', :conditions => {:method => :post}
     messages_routes.connect 'boards/:board_id/topics/:id/replies', :action => 'reply', :conditions => {:method => :post}
     messages_routes.connect 'boards/:board_id/topics/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
-    messages_routes.connect 'boards/:board_id/topics/:action/:id'#left here for backwards compat, TODO: remove and test for regressions
+    
+    #left here for backwards compat, TODO: remove and test for regressions
+    messages_routes.connect 'boards/:board_id/topics/:action/:id'
   end
   map.with_options :controller => 'boards' do |board_routes|
     board_routes.connect 'projects/:project_id/boards', :action => 'index', :conditions => {:method => :get}
@@ -39,7 +59,9 @@ ActionController::Routing::Routes.draw do |map|
     board_routes.connect 'projects/:project_id/boards/:id/edit', :action => 'edit', :conditions => {:method => :get}
     board_routes.connect 'projects/:project_id/boards/:id/edit', :action => 'edit', :conditions => {:method => :post}
     board_routes.connect 'projects/:project_id/boards/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
-    board_routes.connect 'projects/:project_id/boards/:action/:id' #left here for backwards compat, TODO: remove and test for regressions
+    
+    #left here for backwards compat, TODO: remove and test for regressions
+    board_routes.connect 'projects/:project_id/boards/:action/:id' 
   end
   
   map.connect 'issues/:issue_id/relations/:action/:id', :controller => 'issue_relations'

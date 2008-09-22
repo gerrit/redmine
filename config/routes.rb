@@ -17,8 +17,8 @@ ActionController::Routing::Routes.draw do |map|
   
   map.connect 'roles/workflow/:id/:role_id/:tracker_id', :controller => 'roles', :action => 'workflow'
   map.connect 'help/:ctrl/:page', :controller => 'help'
-  #map.connect ':controller/:action/:id/:sort_key/:sort_order'
   
+  map.connect 'projects/:id/wiki', :controller => 'wikis', :action => 'edit', :conditions => {:method => :post}
   map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :get}
   map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :post}
   map.with_options :controller => 'wiki' do |wiki_routes|
@@ -38,34 +38,42 @@ ActionController::Routing::Routes.draw do |map|
   end
   
   map.with_options :controller => 'messages' do |messages_routes|
-    messages_routes.connect 'boards/:board_id/topics/new', :action => 'new', :conditions => {:method => :get}
-    messages_routes.connect 'boards/:board_id/topics/new', :action => 'new', :conditions => {:method => :post}
-    messages_routes.connect 'boards/:board_id/topics/:id', :action => 'show', :conditions => {:method => :get}
-    messages_routes.connect 'boards/:board_id/topics/:id', :action => 'reply', :conditions => {:method => :post}
-    messages_routes.connect 'boards/:board_id/topics/:id/edit', :action => 'edit', :conditions => {:method => :get}
-    messages_routes.connect 'boards/:board_id/topics/:id/edit', :action => 'edit', :conditions => {:method => :post}
-    messages_routes.connect 'boards/:board_id/topics/:id/replies', :action => 'reply', :conditions => {:method => :post}
-    messages_routes.connect 'boards/:board_id/topics/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
+    messages_routes.with_options :conditions => {:method => :get} do |messages_views|
+      messages_views.connect 'boards/:board_id/topics/new', :action => 'new'
+      messages_views.connect 'boards/:board_id/topics/:id', :action => 'show'
+      messages_views.connect 'boards/:board_id/topics/:id/edit', :action => 'edit'
+    end
+    messages_routes.with_options :conditions => {:method => :post} do |messages_actions|
+      messages_actions.connect 'boards/:board_id/topics/new', :action => 'new'
+      messages_actions.connect 'boards/:board_id/topics/:id', :action => 'reply'
+      messages_actions.connect 'boards/:board_id/topics/:id/:action', :action => /edit|reply|destroy/
+    end
   end
+  
   map.with_options :controller => 'boards' do |board_routes|
-    board_routes.connect 'projects/:project_id/boards', :action => 'index', :conditions => {:method => :get}
-    board_routes.connect 'projects/:project_id/boards/new', :action => 'new', :conditions => {:method => :get}
-    board_routes.connect 'projects/:project_id/boards', :action => 'new', :conditions => {:method => :post}
-    board_routes.connect 'projects/:project_id/boards/:id', :action => 'show', :conditions => {:method => :get}
-    board_routes.connect 'projects/:project_id/boards/:id/edit', :action => 'edit', :conditions => {:method => :get}
-    board_routes.connect 'projects/:project_id/boards/:id/edit', :action => 'edit', :conditions => {:method => :post}
-    board_routes.connect 'projects/:project_id/boards/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
+    board_routes.with_options :conditions => {:method => :get} do |board_views|
+      board_views.connect 'projects/:project_id/boards', :action => 'index'
+      board_views.connect 'projects/:project_id/boards/new', :action => 'new'
+      board_views.connect 'projects/:project_id/boards/:id', :action => 'show'
+      board_views.connect 'projects/:project_id/boards/:id/edit', :action => 'edit'
+    end
+    board_routes.with_options :conditions => {:method => :post} do |board_actions|
+      board_actions.connect 'projects/:project_id/boards', :action => 'new'
+      board_actions.connect 'projects/:project_id/boards/:id/:action', :action => /edit|destroy/
+    end
   end
   
   map.with_options :controller => 'documents' do |document_routes|
-    document_routes.connect 'projects/:project_id/documents', :action => 'index', :conditions => {:method => :get}
-    document_routes.connect 'projects/:project_id/documents/new', :action => 'new', :conditions => {:method => :get}
-    document_routes.connect 'projects/:project_id/documents', :action => 'new', :conditions => {:method => :post}
-    
-    document_routes.connect 'documents/:id', :action => 'show', :conditions => {:method => :get}
-    document_routes.connect 'documents/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
-    document_routes.connect 'documents/:id/edit', :action => 'edit', :conditions => {:method => :get}
-    document_routes.connect 'documents/:id/edit', :action => 'edit', :conditions => {:method => :post}
+    document_routes.with_options :conditions => {:method => :get} do |document_views|
+      document_views.connect 'projects/:project_id/documents', :action => 'index'
+      document_views.connect 'projects/:project_id/documents/new', :action => 'new'
+      document_views.connect 'documents/:id', :action => 'show'
+      document_views.connect 'documents/:id/edit', :action => 'edit'
+    end
+    document_routes.with_options :conditions => {:method => :post} do |document_actions|
+      document_actions.connect 'projects/:project_id/documents', :action => 'new'
+      document_actions.connect 'documents/:id/:action', :action => /destroy|edit/
+    end
   end
   
   map.with_options :controller => 'issues' do |issues_routes|
@@ -86,10 +94,12 @@ ActionController::Routing::Routes.draw do |map|
       :action => /edit|move|destroy/,
       :conditions => {:method => :post}
   end
+  
   map.with_options  :controller => 'issue_relations', :conditions => {:method => :post} do |relations|
     relations.connect 'issues/:issue_id/relations/:id', :action => 'new'
     relations.connect 'issues/:issue_id/relations/:id/destroy', :action => 'destroy'
   end
+  
   map.with_options :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get} do |reports|
     reports.connect 'projects/:id/issues/report'
     reports.connect 'projects/:id/issues/report/:detail'
@@ -113,58 +123,52 @@ ActionController::Routing::Routes.draw do |map|
   end
   
   map.connect 'projects/:id/members/new', :controller => 'members', :action => 'new'
-  map.connect 'projects/:id/wiki', :controller => 'wikis', :action => 'edit', :conditions => {:method => :post}
   
   map.with_options :controller => 'projects' do |projects|
-    projects.connect 'projects', :action => 'index', :conditions => {:method => :get}
-    projects.connect 'projects.:format', :action => 'index', :conditions => {:method => :get}
-    projects.connect 'projects/new', :action => 'add', :conditions => {:method => :get}
-    projects.connect 'projects/new', :action => 'add', :conditions => {:method => :post}
-    projects.connect 'projects', :action => 'add', :conditions => {:method => :post}
-    projects.connect 'projects/:id', :action => 'show', :conditions => {:method => :get}
+    projects.with_options :controller => {:method => :get} do |project_views|
+      project_views.connect 'projects', :action => 'index'
+      project_views.connect 'projects.:format', :action => 'index'
+      project_views.connect 'projects/new', :action => 'add'
+      project_views.connect 'projects/:id', :action => 'show'
+      project_views.connect 'projects/:id/:action', :action => /roadmap|changelog|destroy|settings/
+      project_views.connect 'projects/:id/files', :action => 'list_files'
+      project_views.connect 'projects/:id/files/new', :action => 'add_file'
+      project_views.connect 'projects/:id/versions/new', :action => 'add_version'
+      project_views.connect 'projects/:id/categories/new', :action => 'add_issue_category'
+      project_views.connect 'projects/:id/settings/:tab', :action => 'settings'
+    end
 
-    projects.connect 'projects/:id/destroy', :action => 'destroy', :conditions => {:method => :get}
-    projects.connect 'projects/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
-
-    projects.connect 'projects/:id/archive', :action => 'archive', :conditions => {:method => :post}
-    projects.connect 'projects/:id/unarchive', :action => 'unarchive', :conditions => {:method => :post}
-    
-    projects.connect 'projects/:id/roadmap', :action => 'roadmap', :conditions => {:method => :get}
-    projects.connect 'projects/:id/changelog', :action => 'changelog', :conditions => {:method => :get}
-    
-    projects.connect 'projects/:id/files', :action => 'list_files', :conditions => {:method => :get}
-    projects.connect 'projects/:id/files/new', :action => 'add_file', :conditions => {:method => :get}
-    projects.connect 'projects/:id/files/new', :action => 'add_file', :conditions => {:method => :post}
-    
-    projects.connect 'projects/:id/versions/new', :action => 'add_version', :conditions => {:method => :get}
-    projects.connect 'projects/:id/versions/new', :action => 'add_version', :conditions => {:method => :post}
-
-    projects.connect 'projects/:id/categories/new', :action => 'add_issue_category', :conditions => {:method => :get}
-    projects.connect 'projects/:id/categories/new', :action => 'add_issue_category', :conditions => {:method => :post}
-    
-    projects.connect 'projects/:id/settings', :action => 'settings', :conditions => {:method => :get}
-    projects.connect 'projects/:id/settings/:tab', :action => 'settings', :conditions => {:method => :get}
-    
     projects.with_options :action => 'activity', :conditions => {:method => :get} do |activity|
       activity.connect 'projects/:id/activity'
       activity.connect 'projects/:id/activity.:format'
       activity.connect 'activity'
       activity.connect 'activity.:format'
     end
+    
+    projects.with_options :connect => {:method => :post} do |project_actions|
+      project_actions.connect 'projects/new', :action => 'add'
+      project_actions.connect 'projects', :action => 'add'
+      project_actions.connect 'projects/:id/:action', :action => /destroy|archive|unarchive/
+      project_actions.connect 'projects/:id/files/new', :action => 'add_file'
+      project_actions.connect 'projects/:id/versions/new', :action => 'add_version'
+      project_actions.connect 'projects/:id/categories/new', :action => 'add_issue_category'
+    end
   end
   
   map.with_options :controller => 'repositories' do |repositories|
-    repositories.connect 'projects/:id/repository', :action => 'show', :conditions => {:method => :get}
+    repositories.with_options :conditions => {:method => :get} do |repository_views|
+      repositories.connect 'projects/:id/repository', :action => 'show'
+      repositories.connect 'projects/:id/repository/edit', :action => 'edit'
+      repositories.connect 'projects/:id/repository/statistics', :action => 'stats'
+      repositories.connect 'projects/:id/repository/revisions', :action => 'revisions'
+      repositories.connect 'projects/:id/repository/revisions.:format', :action => 'revisions'
+      repositories.connect 'projects/:id/repository/revisions/:rev', :action => 'revision'
+      repositories.connect 'projects/:id/repository/revisions/:rev/diff', :action => 'diff'
+      repositories.connect 'projects/:id/repository/revisions/:rev/diff.:format', :action => 'diff'
+      repositories.connect 'projects/:id/repository/:action/*path'
+    end
+    
     repositories.connect 'projects/:id/repository/edit', :action => 'edit', :conditions => {:method => :post}
-    repositories.connect 'projects/:id/repository/edit', :action => 'edit', :conditions => {:method => :get}
-    repositories.connect 'projects/:id/repository/statistics', :action => 'stats', :conditions => {:method => :get}
-    repositories.connect 'projects/:id/repository/revisions', :action => 'revisions', :conditions => {:method => :get}
-    repositories.connect 'projects/:id/repository/revisions.:format', :action => 'revisions', :conditions => {:method => :get}
-    repositories.connect 'projects/:id/repository/revisions/:rev', :action => 'revision', :conditions => {:method => :get}
-    repositories.connect 'projects/:id/repository/revisions/:rev/diff', :action => 'diff', :conditions => {:method => :get}
-    repositories.connect 'projects/:id/repository/revisions/:rev/diff.:format', :action => 'diff', :conditions => {:method => :get}
-
-    repositories.connect 'projects/:id/repository/:action/*path', :conditions => {:method => :get}
   end
   
   map.connect 'attachments/:id', :controller => 'attachments', :action => 'show', :id => /\d+/

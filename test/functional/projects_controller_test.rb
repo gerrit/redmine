@@ -164,9 +164,21 @@ class ProjectsControllerTest < Test::Unit::TestCase
       :controller => 'projects', :action => 'add_issue_category', :id => 'test'
     )
     assert_routing(
-    #TODO: use PUT
+    #TODO: use PUT and update form
       {:method => :post, :path => 'projects/64/categories/new'},
       :controller => 'projects', :action => 'add_issue_category', :id => '64'
+    )
+  end
+  
+  def test_destroy_routing
+    assert_routing(
+      {:method => :get, :path => '/projects/567/destroy'},
+      :controller => 'projects', :action => 'destroy', :id => '567'
+    )
+    assert_routing(
+    #TODO: use DELETE and update form
+      {:method => :post, :path => 'projects/64/destroy'},
+      :controller => 'projects', :action => 'destroy', :id => '64'
     )
   end
   

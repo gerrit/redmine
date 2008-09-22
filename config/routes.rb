@@ -86,13 +86,14 @@ ActionController::Routing::Routes.draw do |map|
       issues_views.connect 'issues/:id', :action => 'show'
       issues_views.connect 'issues/:id.:format', :action => 'show'
       issues_views.connect 'issues/:id/edit', :action => 'edit'
-      issues_views.connect 'issues/:id/quoted', :action => 'reply'
       issues_views.connect 'issues/:id/move', :action => 'move'
     end
-    issues_routes.connect 'projects/:project_id/issues', :action => 'new', :conditions => {:method => :post}
-    issues_routes.connect 'issues/:id/:action',
-      :action => /edit|move|destroy/,
-      :conditions => {:method => :post}
+    issues_routes.with_options :conditions => {:method => :post} do |issues_actions|
+      issues_actions.connect 'projects/:project_id/issues', :action => 'new'
+      issues_actions.connect 'issues/:id/quoted', :action => 'reply'
+      issues_actions.connect 'issues/:id/:action',
+        :action => /edit|move|destroy/
+    end
   end
   
   map.with_options  :controller => 'issue_relations', :conditions => {:method => :post} do |relations|

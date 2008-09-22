@@ -517,7 +517,7 @@ class IssuesControllerTest < Test::Unit::TestCase
   
   def test_reply_routing
     assert_routing(
-      {:method => :get, :path => '/issues/1/quoted'},
+      {:method => :post, :path => '/issues/1/quoted'},
       :controller => 'issues', :action => 'reply', :id => '1'
     )
   end

@@ -125,6 +125,23 @@ ActionController::Routing::Routes.draw do |map|
   
   map.connect 'projects/:id/members/new', :controller => 'members', :action => 'new'
   
+  map.with_options :controller => 'users' do |users|
+    users.with_options :conditions => {:method => :get} do |user_views|
+      user_views.connect 'users', :action => 'list'
+      user_views.connect 'users', :action => 'index'
+      user_views.connect 'users/new', :action => 'add'
+      user_views.connect 'users/:id/edit/:tab', :action => 'edit', :tab => nil
+    end
+    users.with_options  :conditions => {:method => :post} do |user_actions|
+      user_actions.connect 'users', :action => 'add'
+      user_actions.connect 'users/new', :action => 'add'
+      user_actions.connect 'users/:id/edit', :action => 'edit'
+      user_actions.connect 'users/:id/memberships', :action => 'edit_membership'
+      user_actions.connect 'users/:id/memberships/:membership_id', :action => 'edit_membership'
+      user_actions.connect 'users/:id/memberships/:membership_id/destroy', :action => 'destroy_membership'
+    end
+  end
+  
   map.with_options :controller => 'projects' do |projects|
     projects.with_options :controller => {:method => :get} do |project_views|
       project_views.connect 'projects', :action => 'index'

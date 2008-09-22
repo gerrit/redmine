@@ -132,7 +132,7 @@ ActionController::Routing::Routes.draw do |map|
       user_views.connect 'users/new', :action => 'add'
       user_views.connect 'users/:id/edit/:tab', :action => 'edit', :tab => nil
     end
-    users.with_options  :conditions => {:method => :post} do |user_actions|
+    users.with_options :conditions => {:method => :post} do |user_actions|
       user_actions.connect 'users', :action => 'add'
       user_actions.connect 'users/new', :action => 'add'
       user_actions.connect 'users/:id/edit', :action => 'edit'
@@ -143,7 +143,7 @@ ActionController::Routing::Routes.draw do |map|
   end
   
   map.with_options :controller => 'projects' do |projects|
-    projects.with_options :controller => {:method => :get} do |project_views|
+    projects.with_options :conditions => {:method => :get} do |project_views|
       project_views.connect 'projects', :action => 'index'
       project_views.connect 'projects.:format', :action => 'index'
       project_views.connect 'projects/new', :action => 'add'
@@ -163,7 +163,7 @@ ActionController::Routing::Routes.draw do |map|
       activity.connect 'activity.:format'
     end
     
-    projects.with_options :connect => {:method => :post} do |project_actions|
+    projects.with_options :conditions => {:method => :post} do |project_actions|
       project_actions.connect 'projects/new', :action => 'add'
       project_actions.connect 'projects', :action => 'add'
       project_actions.connect 'projects/:id/:action', :action => /destroy|archive|unarchive/

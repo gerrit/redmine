@@ -125,6 +125,9 @@ ActionController::Routing::Routes.draw do |map|
 
     projects.connect 'projects/:id/destroy', :action => 'destroy', :conditions => {:method => :get}
     projects.connect 'projects/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
+
+    projects.connect 'projects/:id/archive', :action => 'archive', :conditions => {:method => :post}
+    projects.connect 'projects/:id/unarchive', :action => 'unarchive', :conditions => {:method => :post}
     
     projects.connect 'projects/:id/roadmap', :action => 'roadmap', :conditions => {:method => :get}
     projects.connect 'projects/:id/changelog', :action => 'changelog', :conditions => {:method => :get}

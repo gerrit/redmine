@@ -409,11 +409,27 @@ class ProjectsControllerTest < Test::Unit::TestCase
     assert_template 'common/feed.atom.rxml'
   end
   
-  def test_archive    
+  def test_archive_routing
+    assert_routing(
+    #TODO: use PUT to project path and modify form
+      {:method => :post, :path => 'projects/64/archive'},
+      :controller => 'projects', :action => 'archive', :id => '64'
+    )
+  end
+  
+  def test_archive
     @request.session[:user_id] = 1 # admin
     post :archive, :id => 1
     assert_redirected_to 'admin/projects'
     assert !Project.find(1).active?
+  end
+  
+  def test_unarchive_routing
+    assert_routing(
+    #TODO: use PUT to project path and modify form
+      {:method => :post, :path => '/projects/567/unarchive'},
+      :controller => 'projects', :action => 'unarchive', :id => '567'
+    )
   end
   
   def test_unarchive

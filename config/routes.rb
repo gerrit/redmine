@@ -119,6 +119,7 @@ ActionController::Routing::Routes.draw do |map|
     projects.connect 'projects', :action => 'index', :conditions => {:method => :get}
     projects.connect 'projects.:format', :action => 'index', :conditions => {:method => :get}
     projects.connect 'projects/new', :action => 'add', :conditions => {:method => :get}
+    projects.connect 'projects/new', :action => 'add', :conditions => {:method => :post}
     projects.connect 'projects', :action => 'add', :conditions => {:method => :post}
     projects.connect 'projects/:id', :action => 'show', :conditions => {:method => :get}
     

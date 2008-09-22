@@ -74,6 +74,10 @@ class ProjectsControllerTest < Test::Unit::TestCase
     )
     assert_recognizes(
       {:controller => 'projects', :action => 'add'},
+      {:method => :post, :path => '/projects/new'}
+    )
+    assert_recognizes(
+      {:controller => 'projects', :action => 'add'},
       {:method => :post, :path => '/projects'}
     )
   end

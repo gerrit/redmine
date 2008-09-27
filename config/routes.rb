@@ -12,12 +12,43 @@ ActionController::Routing::Routes.draw do |map|
   end
 
   map.home '', :controller => 'welcome'
+  
   map.signin 'login', :controller => 'account', :action => 'login'
   map.signout 'logout', :controller => 'account', :action => 'logout'
   
   map.connect 'roles/workflow/:id/:role_id/:tracker_id', :controller => 'roles', :action => 'workflow'
   map.connect 'help/:ctrl/:page', :controller => 'help'
+  
+  map.connect 'time_entries/:id/edit', :action => 'edit', :controller => 'timelog'
+  map.connect 'projects/:project_id/time_entries/new', :action => 'edit', :controller => 'timelog'
+  map.connect 'projects/:project_id/issues/:issue_id/time_entries/new', :action => 'edit', :controller => 'timelog'
+  
+  map.with_options :controller => 'timelog' do |timelog|
+    timelog.connect 'projects/:project_id/time_entries', :action => 'details'
+    
+    timelog.with_options :action => 'details', :conditions => {:method => :get}  do |time_details|
+      time_details.connect 'time_entries'
+      time_details.connect 'time_entries.:format'
+      time_details.connect 'issues/:issue_id/time_entries'
+      time_details.connect 'issues/:issue_id/time_entries.:format'
+      time_details.connect 'projects/:project_id/time_entries.:format'
+      time_details.connect 'projects/:project_id/issues/:issue_id/time_entries'
+      time_details.connect 'projects/:project_id/issues/:issue_id/time_entries.:format'
+    end
+    timelog.connect 'projects/:project_id/time_entries/report', :action => 'report'
+    timelog.with_options :action => 'report',:conditions => {:method => :get} do |time_report|
+      time_report.connect 'time_entries/report'
+      time_report.connect 'time_entries/report.:format'
+      time_report.connect 'projects/:project_id/time_entries/report.:format'
+    end
 
+    timelog.with_options :action => 'edit', :conditions => {:method => :get} do |time_edit|
+      time_edit.connect 'issues/:issue_id/time_entries/new'
+    end
+      
+    timelog.connect 'time_entries/:id/destroy', :action => 'destroy', :conditions => {:method => :post}
+  end
+  
   map.connect 'projects/:id/wiki', :controller => 'wikis', :action => 'edit', :conditions => {:method => :post}
   map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :get}
   map.connect 'projects/:id/wiki/destroy', :controller => 'wikis', :action => 'destroy', :conditions => {:method => :post}

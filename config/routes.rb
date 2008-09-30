@@ -76,8 +76,8 @@ ActionController::Routing::Routes.draw do |map|
     end
     messages_routes.with_options :conditions => {:method => :post} do |messages_actions|
       messages_actions.connect 'boards/:board_id/topics/new', :action => 'new'
-      messages_actions.connect 'boards/:board_id/topics/:id', :action => 'reply'
-      messages_actions.connect 'boards/:board_id/topics/:id/:action', :action => /edit|reply|destroy/
+      messages_actions.connect 'boards/:board_id/topics/:id/replies', :action => 'reply'
+      messages_actions.connect 'boards/:board_id/topics/:id/:action', :action => /edit|destroy/
     end
   end
   

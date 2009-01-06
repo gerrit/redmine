@@ -214,6 +214,7 @@ ActionController::Routing::Routes.draw do |map|
       repositories.connect 'projects/:id/repository/revisions/:rev', :action => 'revision'
       repositories.connect 'projects/:id/repository/revisions/:rev/diff', :action => 'diff'
       repositories.connect 'projects/:id/repository/revisions/:rev/diff.:format', :action => 'diff'
+      repositories.connect 'projects/:id/repository/revisions/:rev/:action/*path'
       repositories.connect 'projects/:id/repository/:action/*path'
     end
     

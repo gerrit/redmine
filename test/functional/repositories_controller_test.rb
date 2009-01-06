@@ -109,6 +109,13 @@ class RepositoriesControllerTest < Test::Unit::TestCase
       :controller => 'repositories', :action => 'diff', :id => 'restmine', :path => %w[path to file.c]
     )
   end
+
+  def test_diff_path_routing_with_revision
+    assert_routing(
+      {:method => :get, :path => '/projects/restmine/repository/revisions/2/diff/path/to/file.c'},
+      :controller => 'repositories', :action => 'diff', :id => 'restmine', :path => %w[path to file.c], :rev => '2'
+    )
+  end
   
   def test_browse_routing
     assert_routing(
@@ -121,6 +128,13 @@ class RepositoriesControllerTest < Test::Unit::TestCase
     assert_routing(
       {:method => :get, :path => '/projects/restmine/repository/entry/path/to/file.c'},
       :controller => 'repositories', :action => 'entry', :id => 'restmine', :path => %w[path to file.c]
+    )
+  end
+  
+  def test_entry_routing_with_revision
+    assert_routing(
+      {:method => :get, :path => '/projects/restmine/repository/revisions/2/entry/path/to/file.c'},
+      :controller => 'repositories', :action => 'entry', :id => 'restmine', :path => %w[path to file.c], :rev => '2'
     )
   end
   

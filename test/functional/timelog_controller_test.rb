@@ -153,7 +153,7 @@ class TimelogControllerTest < Test::Unit::TestCase
     r.permissions_will_change!
     r.save
     get :report
-    assert_redirected_to '/login?back_url=http%3A%2F%2Ftest.host%2Ftimelog%2Freport'
+    assert_redirected_to '/login?back_url=http%3A%2F%2Ftest.host%2Ftime_entries%2Freport'
   end
   
   def test_report_all_projects_one_criteria

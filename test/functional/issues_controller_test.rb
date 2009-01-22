@@ -336,7 +336,7 @@ class IssuesControllerTest < Test::Unit::TestCase
   end
 
   def test_show_export_to_pdf
-    get :show, :id => 1, :format => 'pdf'
+    get :show, :id => 3, :format => 'pdf'
     assert_response :success
     assert_equal 'application/pdf', @response.content_type
     assert @response.body.starts_with?('%PDF')
@@ -394,6 +394,16 @@ class IssuesControllerTest < Test::Unit::TestCase
     v = issue.custom_values.find(:first, :conditions => {:custom_field_id => 2})
     assert_not_nil v
     assert_equal 'Value for field 2', v.value
+  end
+  
+  def test_post_new_and_continue
+    @request.session[:user_id] = 2
+    post :new, :project_id => 1, 
+               :issue => {:tracker_id => 3,
+                          :subject => 'This is first issue',
+                          :priority_id => 5},
+               :continue => ''
+    assert_redirected_to :controller => 'issues', :action => 'new', :tracker_id => 3
   end
   
   def test_post_new_without_custom_fields_param
@@ -704,6 +714,24 @@ class IssuesControllerTest < Test::Unit::TestCase
     assert issue.journals.empty?
     # No email should be sent
     assert ActionMailer::Base.deliveries.empty?
+  end
+  
+  def test_post_edit_with_invalid_spent_time
+    @request.session[:user_id] = 2
+    notes = 'Note added by IssuesControllerTest#test_post_edit_with_invalid_spent_time'
+    
+    assert_no_difference('Journal.count') do
+      post :edit,
+           :id => 1,
+           :notes => notes,
+           :time_entry => {"comments"=>"", "activity_id"=>"", "hours"=>"2z"}
+    end
+    assert_response :success
+    assert_template 'edit'
+    
+    assert_tag :textarea, :attributes => { :name => 'notes' },
+                          :content => notes
+    assert_tag :input, :attributes => { :name => 'time_entry[hours]', :value => "2z" }
   end
 
   def test_bulk_edit

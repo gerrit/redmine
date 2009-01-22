@@ -186,6 +186,7 @@ field_searchable: Utilisé pour les recherches
 field_default_value: Valeur par défaut
 field_comments_sorting: Afficher les commentaires
 field_parent_title: Page parent
+field_editable: Modifiable
 
 setting_app_title: Titre de l'application
 setting_app_subtitle: Sous-titre de l'application
@@ -584,6 +585,7 @@ label_incoming_emails: Emails entrants
 label_generate_key: Générer une clé
 label_issue_watchers: Observateurs
 label_example: Exemple
+label_display: Affichage
 
 button_login: Connexion
 button_submit: Soumettre
@@ -592,6 +594,7 @@ button_check_all: Tout cocher
 button_uncheck_all: Tout décocher
 button_delete: Supprimer
 button_create: Créer
+button_create_and_continue: Créer et continuer
 button_test: Tester
 button_edit: Modifier
 button_add: Ajouter
@@ -675,6 +678,7 @@ text_enumeration_category_reassign_to: 'Réaffecter les objets à cette valeur:'
 text_email_delivery_not_configured: "L'envoi de mail n'est pas configuré, les notifications sont désactivées.\nConfigurez votre serveur SMTP dans config/email.yml et redémarrez l'application pour les activer."
 text_repository_usernames_mapping: "Vous pouvez sélectionner ou modifier l'utilisateur Redmine associé à chaque nom d'utilisateur figurant dans l'historique du dépôt.\nLes utilisateurs avec le même identifiant ou la même adresse mail seront automatiquement associés."
 text_diff_truncated: '... Ce différentiel a été tronqué car il excède la taille maximale pouvant être affichée.'
+text_custom_field_possible_values_info: 'Une ligne par valeur'
 
 default_role_manager: Manager
 default_role_developper: Développeur

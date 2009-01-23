@@ -204,36 +204,28 @@ module ApplicationHelper
     url_param.clear if url_param.has_key?(:set_filter)
 
     html = ''
-    html << link_to_remote(('&#171; ' + l(:label_previous)),
-                            {:update => 'content',
-                             :url => url_param.merge(page_param => paginator.current.previous),
-                             :method => :get,
-                             :complete => 'window.scrollTo(0,0)'},
-                            {:href => url_for(:params => url_param.merge(page_param => paginator.current.previous))}) + ' ' if paginator.current.previous
+    if paginator.current.previous
+      html << link_to_remote_content_update('&#171; ' + l(:label_previous), url_param.merge(page_param => paginator.current.previous)) + ' '
+    end
 
     html << (pagination_links_each(paginator, options) do |n|
-      link_to_remote(n.to_s,
-                      {:url => {:params => url_param.merge(page_param => n)},
-                       :method => :get,
-                       :update => 'content',
-                       :complete => 'window.scrollTo(0,0)'},
-                      {:href => url_for(:params => url_param.merge(page_param => n))})
+      link_to_remote_content_update(n.to_s, url_param.merge(page_param => n))
     end || '')
-
-    html << ' ' + link_to_remote((l(:label_next) + ' &#187;'),
-                                 {:update => 'content',
-                                  :url => url_param.merge(page_param => paginator.current.next),
-                                  :method => :get,
-                                  :complete => 'window.scrollTo(0,0)'},
-                                 {:href => url_for(:params => url_param.merge(page_param => paginator.current.next))}) if paginator.current.next
+    
+    if paginator.current.next
+      html << ' ' + link_to_remote_content_update((l(:label_next) + ' &#187;'), url_param.merge(page_param => paginator.current.next))
+    end
 
     unless count.nil?
-      html << [" (#{paginator.current.first_item}-#{paginator.current.last_item}/#{count})", per_page_links(paginator.items_per_page)].compact.join(' | ')
+      html << [
+        " (#{paginator.current.first_item}-#{paginator.current.last_item}/#{count})",
+        per_page_links(paginator.items_per_page)
+      ].compact.join(' | ')
     end
 
     html
   end
-
+  
   def per_page_links(selected=nil)
     url_param = params.dup
     url_param.clear if url_param.has_key?(:set_filter)
@@ -630,4 +622,12 @@ module ApplicationHelper
     extend helper
     return self
   end
+  
+  def link_to_remote_content_update(text, url_params)
+    link_to_remote(text,
+      {:url => url_params, :method => :get, :update => 'content', :complete => 'window.scrollTo(0,0)'},
+      {:href => url_for(:params => url_params)}
+    )
+  end
+  
 end

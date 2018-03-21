@@ -16,19 +16,23 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require 'iconv'
+require 'rfpdf/fpdf'
 require 'rfpdf/chinese'
 
 module Redmine
   module Export
     module PDF
+      include ActionView::Helpers::TextHelper
+      include ActionView::Helpers::NumberHelper
+      
       class IFPDF < FPDF
-        include GLoc
+        include Redmine::I18n
         attr_accessor :footer_date
         
         def initialize(lang)
           super()
           set_language_if_valid lang
-          case current_language.to_s
+          case current_language.to_s.downcase
           when 'ja'
             extend(PDF_Japanese)
             AddSJISFont()

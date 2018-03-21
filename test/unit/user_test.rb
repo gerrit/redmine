@@ -48,6 +48,19 @@ class UserTest < Test::Unit::TestCase
     user.password, user.password_confirmation = "password", "password"
     assert user.save
   end
+  
+  def test_mail_uniqueness_should_not_be_case_sensitive
+    u = User.new(:firstname => "new", :lastname => "user", :mail => "newuser@somenet.foo")
+    u.login = 'newuser1'
+    u.password, u.password_confirmation = "password", "password"
+    assert u.save
+    
+    u = User.new(:firstname => "new", :lastname => "user", :mail => "newUser@Somenet.foo")
+    u.login = 'newuser2'
+    u.password, u.password_confirmation = "password", "password"
+    assert !u.save
+    assert_equal I18n.translate('activerecord.errors.messages.taken'), u.errors.on(:mail)
+  end
 
   def test_update
     assert_equal "admin", @admin.login
@@ -164,4 +177,47 @@ class UserTest < Test::Unit::TestCase
     assert_not_nil u
     assert_equal 'jsmith@somenet.foo', u.mail
   end
+  
+  def test_random_password
+    u = User.new
+    u.random_password
+    assert !u.password.blank?
+    assert !u.password_confirmation.blank?
+  end
+  
+  if Object.const_defined?(:OpenID)
+    
+  def test_setting_identity_url
+    normalized_open_id_url = 'http://example.com/'
+    u = User.new( :identity_url => 'http://example.com/' )
+    assert_equal normalized_open_id_url, u.identity_url
+  end
+
+  def test_setting_identity_url_without_trailing_slash
+    normalized_open_id_url = 'http://example.com/'
+    u = User.new( :identity_url => 'http://example.com' )
+    assert_equal normalized_open_id_url, u.identity_url
+  end
+
+  def test_setting_identity_url_without_protocol
+    normalized_open_id_url = 'http://example.com/'
+    u = User.new( :identity_url => 'example.com' )
+    assert_equal normalized_open_id_url, u.identity_url
+  end
+    
+  def test_setting_blank_identity_url
+    u = User.new( :identity_url => 'example.com' )
+    u.identity_url = ''
+    assert u.identity_url.blank?
+  end
+    
+  def test_setting_invalid_identity_url
+    u = User.new( :identity_url => 'this is not an openid url' )
+    assert u.identity_url.blank?
+  end
+  
+  else
+    puts "Skipping openid tests."
+  end
+
 end

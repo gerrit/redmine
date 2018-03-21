@@ -54,7 +54,7 @@ class User < ActiveRecord::Base
 	
   validates_presence_of :login, :firstname, :lastname, :mail, :if => Proc.new { |user| !user.is_a?(AnonymousUser) }
   validates_uniqueness_of :login, :if => Proc.new { |user| !user.login.blank? }
-  validates_uniqueness_of :mail, :if => Proc.new { |user| !user.mail.blank? }
+  validates_uniqueness_of :mail, :if => Proc.new { |user| !user.mail.blank? }, :case_sensitive => false
   # Login must contain lettres, numbers, underscores only
   validates_format_of :login, :with => /^[a-z0-9_\-@\.]*$/i
   validates_length_of :login, :maximum => 30
@@ -78,6 +78,19 @@ class User < ActiveRecord::Base
   def reload(*args)
     @name = nil
     super
+  end
+  
+  def identity_url=(url)
+    if url.blank?
+      write_attribute(:identity_url, '')
+    else
+      begin
+        write_attribute(:identity_url, OpenIdAuthentication.normalize_identifier(url))
+      rescue OpenIdAuthentication::InvalidOpenId
+        # Invlaid url, don't save
+      end
+    end
+    self.read_attribute(:identity_url)
   end
   
   # Returns the user that matches provided login and password, or nil
@@ -113,6 +126,15 @@ class User < ActiveRecord::Base
   rescue => text
     raise text
   end
+  
+  # Returns the user who matches the given autologin +key+ or nil
+  def self.try_to_autologin(key)
+    token = Token.find_by_action_and_value('autologin', key)
+    if token && (token.created_on > Setting.autologin.to_i.day.ago) && token.user && token.user.active?
+      token.user.update_attribute(:last_login_on, Time.now)
+      token.user
+    end
+  end
 	
   # Return user's full name for display
   def name(formatter = nil)
@@ -137,6 +159,18 @@ class User < ActiveRecord::Base
 
   def check_password?(clear_password)
     User.hash_password(clear_password) == self.hashed_password
+  end
+
+  # Generate and set a random password.  Useful for automated user creation
+  # Based on Token#generate_token_value
+  #
+  def random_password
+    chars = ("a".."z").to_a + ("A".."Z").to_a + ("0".."9").to_a
+    password = ''
+    40.times { |i| password << chars[rand(chars.size-1)] }
+    self.password = password
+    self.password_confirmation = password
+    self
   end
   
   def pref
@@ -172,11 +206,6 @@ class User < ActiveRecord::Base
   def self.find_by_rss_key(key)
     token = Token.find_by_value(key)
     token && token.user.active? ? token.user : nil
-  end
-  
-  def self.find_by_autologin_key(key)
-    token = Token.find_by_action_and_value('autologin', key)
-    token && (token.created_on > Setting.autologin.to_i.day.ago) && token.user.active? ? token.user : nil
   end
   
   # Makes find_by_mail case-insensitive

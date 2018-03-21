@@ -21,12 +21,20 @@ class Mailer < ActionMailer::Base
   helper :custom_fields
 
   include ActionController::UrlWriter
+  include Redmine::I18n
 
+  def self.default_url_options
+    h = Setting.host_name
+    h = h.to_s.gsub(%r{\/.*$}, '') unless Redmine::Utils.relative_url_root.blank?
+    { :host => h, :protocol => Setting.protocol }
+  end
+  
   def issue_add(issue)
     redmine_headers 'Project' => issue.project.identifier,
                     'Issue-Id' => issue.id,
                     'Issue-Author' => issue.author.login
     redmine_headers 'Issue-Assignee' => issue.assigned_to.login if issue.assigned_to
+    message_id issue
     recipients issue.recipients
     cc(issue.watcher_recipients - @recipients)
     subject "[#{issue.project.name} - #{issue.tracker.name} ##{issue.id}] (#{issue.status.name}) #{issue.subject}"
@@ -40,6 +48,8 @@ class Mailer < ActionMailer::Base
                     'Issue-Id' => issue.id,
                     'Issue-Author' => issue.author.login
     redmine_headers 'Issue-Assignee' => issue.assigned_to.login if issue.assigned_to
+    message_id journal
+    references issue
     @author = journal.user
     recipients issue.recipients
     # Watchers in cc
@@ -95,6 +105,7 @@ class Mailer < ActionMailer::Base
 
   def news_added(news)
     redmine_headers 'Project' => news.project.identifier
+    message_id news
     recipients news.project.recipients
     subject "[#{news.project.name}] #{l(:label_news)}: #{news.title}"
     body :news => news,
@@ -104,8 +115,10 @@ class Mailer < ActionMailer::Base
   def message_posted(message, recipients)
     redmine_headers 'Project' => message.project.identifier,
                     'Topic-Id' => (message.parent_id || message.id)
+    message_id message
+    references message.parent unless message.parent.nil?
     recipients(recipients)
-    subject "[#{message.board.project.name} - #{message.board.name}] #{message.subject}"
+    subject "[#{message.board.project.name} - #{message.board.name} - msg#{message.root.id}] #{message.subject}"
     body :message => message,
          :message_url => url_for(:controller => 'messages', :action => 'show', :board_id => message.board_id, :id => message.root)
   end
@@ -125,6 +138,15 @@ class Mailer < ActionMailer::Base
     subject l(:mail_subject_account_activation_request, Setting.app_title)
     body :user => user,
          :url => url_for(:controller => 'users', :action => 'index', :status => User::STATUS_REGISTERED, :sort_key => 'created_on', :sort_order => 'desc')
+  end
+
+  # A registered user's account was activated by an administrator
+  def account_activated(user)
+    set_language_if_valid user.language
+    recipients user.mail
+    subject l(:mail_subject_register, Setting.app_title)
+    body :user => user,
+         :login_url => url_for(:controller => 'account', :action => 'login')
   end
 
   def lost_password(token)
@@ -156,7 +178,15 @@ class Mailer < ActionMailer::Base
     return false if (recipients.nil? || recipients.empty?) &&
                     (cc.nil? || cc.empty?) &&
                     (bcc.nil? || bcc.empty?)
-    super
+                    
+    # Set Message-Id and References
+    if @message_id_object
+      mail.message_id = self.class.message_id_for(@message_id_object)
+    end
+    if @references_objects
+      mail.references = @references_objects.collect {|o| self.class.message_id_for(o)}
+    end
+    super(mail)
   end
 
   # Sends reminders to issue assignees
@@ -189,16 +219,11 @@ class Mailer < ActionMailer::Base
     set_language_if_valid Setting.default_language
     from Setting.mail_from
     
-    # URL options
-    h = Setting.host_name
-    h = h.to_s.gsub(%r{\/.*$}, '') unless Redmine::Utils.relative_url_root.blank?
-    default_url_options[:host] = h
-    default_url_options[:protocol] = Setting.protocol
-    
     # Common headers
     headers 'X-Mailer' => 'Redmine',
             'X-Redmine-Host' => Setting.host_name,
-            'X-Redmine-Site' => Setting.app_title
+            'X-Redmine-Site' => Setting.app_title,
+            'List-Id' => "<#{Setting.mail_from.to_s.gsub('@', '.')}>"
   end
 
   # Appends a Redmine header field (name is prepended with 'X-Redmine-')
@@ -250,4 +275,34 @@ class Mailer < ActionMailer::Base
   def self.controller_path
     ''
   end unless respond_to?('controller_path')
+  
+  # Returns a predictable Message-Id for the given object
+  def self.message_id_for(object)
+    # id + timestamp should reduce the odds of a collision
+    # as far as we don't send multiple emails for the same object
+    hash = "redmine.#{object.class.name.demodulize.underscore}-#{object.id}.#{object.created_on.strftime("%Y%m%d%H%M%S")}"
+    host = Setting.mail_from.to_s.gsub(%r{^.*@}, '')
+    host = "#{::Socket.gethostname}.redmine" if host.empty?
+    "<#{hash}@#{host}>"
+  end
+  
+  private
+  
+  def message_id(object)
+    @message_id_object = object
+  end
+  
+  def references(object)
+    @references_objects ||= []
+    @references_objects << object
+  end
+end
+
+# Patch TMail so that message_id is not overwritten
+module TMail
+  class Mail
+    def add_message_id( fqdn = nil )
+      self.message_id ||= ::TMail::new_message_id(fqdn)
+    end
+  end
 end

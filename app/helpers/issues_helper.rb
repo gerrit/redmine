@@ -36,7 +36,10 @@ module IssuesHelper
   # Returns a string of css classes that apply to the given issue
   def css_issue_classes(issue)
     s = "issue status-#{issue.status.position} priority-#{issue.priority.position}"
+    s << ' closed' if issue.closed?
     s << ' overdue' if issue.overdue?
+    s << ' created-by-me' if User.current.logged? && issue.author_id == User.current.id
+    s << ' assigned-to-me' if User.current.logged? && issue.assigned_to_id == User.current.id
     s
   end
   
@@ -47,6 +50,7 @@ module IssuesHelper
       # Project specific queries and global queries
       visible << (@project.nil? ? ["project_id IS NULL"] : ["project_id IS NULL OR project_id = ?", @project.id])
       @sidebar_queries = Query.find(:all, 
+                                    :select => 'id, name',
                                     :order => "name ASC",
                                     :conditions => visible.conditions)
     end
@@ -118,7 +122,7 @@ module IssuesHelper
       case detail.property
       when 'attr', 'cf'
         if !detail.old_value.blank?
-          label + " " + l(:text_journal_changed, old_value, value)
+          label + " " + l(:text_journal_changed, :old => old_value, :new => value)
         else
           label + " " + l(:text_journal_set_to, value)
         end
